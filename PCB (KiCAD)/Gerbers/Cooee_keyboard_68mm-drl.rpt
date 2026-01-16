@@ -1,0 +1,24 @@
+Drill report for Cooee_keyboard_68mm.kicad_pcb
+Created on 2026-01-16T18:29:04+1100
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'Cooee_keyboard_68mm-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.300mm  0.0118"  (50 holes)
+    T2  1.000mm  0.0394"  (15 holes)
+
+    Total plated holes count 65
+
+
+Drill file 'Cooee_keyboard_68mm-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  3.200mm  0.1260"  (3 holes)
+
+    Total unplated holes count 3
