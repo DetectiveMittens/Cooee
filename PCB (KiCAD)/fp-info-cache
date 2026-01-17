@@ -1,4 +1,4 @@
-26846406708022448
+26848175314869226
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -105916,6 +105916,13 @@ igbt diode module
 0
 25
 25
+USB4105-GF-A (1)
+Lil_Pad
+Through hole straight pin header, 1x01, 2.54mm pitch, single row
+Through hole pin header THT 1x01 2.54mm single row
+0
+1
+1
 USB4105-GF-A (1)
 SW_SPST_B3U-1000P_MovedText
 Ultra-small-sized Tactile Switch with High Contact Reliability, Top-actuated Model, without Ground Terminal, without Boss
