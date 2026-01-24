@@ -1,4 +1,4 @@
-26860556987053579
+26865864390158462
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -105952,6 +105952,13 @@ MOLEX_503480-1800
 20
 20
 USB4105-GF-A (1)
+QFN28G_0.5-5X5MM
+
+
+0
+29
+29
+USB4105-GF-A (1)
 QFN50P300X300X80-17N
 
 
@@ -105966,6 +105973,13 @@ QFN50P400X400X100-25N
 25
 25
 USB4105-GF-A (1)
+SOT65P215X110-6N
+
+
+0
+6
+6
+USB4105-GF-A (1)
 SW_SPST_B3U-1000P_MovedText
 Ultra-small-sized Tactile Switch with High Contact Reliability, Top-actuated Model, without Ground Terminal, without Boss
 Tactile Switch
@@ -105979,6 +105993,13 @@ Untitled
 0
 0
 0
+USB4105-GF-A (1)
+XCVR_RA-01H
+
+
+0
+16
+16
 Valve
 Valve_ECC-83-1
 Valve ECC-83-1 round pins
