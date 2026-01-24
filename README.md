@@ -13,7 +13,7 @@ While LoRa bandwidth will likely never support sending large files (videos etc) 
 
 ## Applications / Uses: 
 The Cooee should ideally contribute to solving the following problems
-  * Calling for distress in remote locations
+  * Distress calls for help in remote locations
   * Basic communication in areas without GSM/LTE infrastructure
   * Dissemination of natural disaster and emergency warnings
   * Marking/Logging GPS locations. Users could tag and share hazards such as landmines (UXO/ERW), fires, vehicle collisions, chemical spills or dangerous wildlife.
