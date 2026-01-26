@@ -1,6 +1,9 @@
 # Cooee (A LoRa Phone)
 An open-source phone that can operate without GSM or LTE coverage. Utilising LoRa modulation and mesh networking to enable long range "off-grid" communication
 
+![Cooee_renders1](https://github.com/user-attachments/assets/be2b35a4-67d3-4329-a7a9-1cc6b175654d)
+
+
 ## Target Utilities/Functions
 At time of writing (Jan 2026) Popular LoRa mesh networks only aim to support passing of text messages for public and private chat. Cooee aims to provide more of phone the features that consumers are used to
 
@@ -11,9 +14,11 @@ At time of writing (Jan 2026) Popular LoRa mesh networks only aim to support pas
 * __Sending images and files:__
 While LoRa bandwidth will likely never support sending large files (videos etc) piecemeal file transfers of compressed images (jpgs) should be possible
 
+![Cooee_renders2](https://github.com/user-attachments/assets/19ba857a-2182-4fc4-b3ba-01dcd55f5894)
+
 ## Applications / Uses: 
 The Cooee should ideally contribute to solving the following problems
-  * Calling for distress in remote locations
+  * Distress calls for help in remote locations
   * Basic communication in areas without GSM/LTE infrastructure
   * Dissemination of natural disaster and emergency warnings
   * Marking/Logging GPS locations. Users could tag and share hazards such as landmines (UXO/ERW), fires, vehicle collisions, chemical spills or dangerous wildlife.
