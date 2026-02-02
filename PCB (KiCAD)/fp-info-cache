@@ -1,4 +1,4 @@
-26865864390158462
+26867634775055824
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -105972,6 +105972,13 @@ QFN50P400X400X100-25N
 0
 25
 25
+USB4105-GF-A (1)
+SMD_Header_1x18_P2.54mm
+surface-mounted straight socket strip, 1x18, 2.54mm pitch, single row, style 1 (pin 1 left) (https://cdn.harwin.com/pdfs/M20-786.pdf), script generated
+Surface mounted socket strip SMD 1x18 2.54mm single row style1 pin1 left
+0
+18
+18
 USB4105-GF-A (1)
 SOT65P215X110-6N
 

@@ -9553,6 +9553,16 @@
 		)
 		(uuid b07e849e-dd7d-46a9-a8ca-15a01a25d6f3)
 	)
+	(text "MT3608 (cheap)\nTPS61088 (performance)"
+		(exclude_from_sim no)
+		(at 270.51 -16.51 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "012a217b-9dad-42f1-998b-6aedce3ee732")
+	)
 	(text "Keyboard"
 		(exclude_from_sim no)
 		(at 18.288 161.29 0)
@@ -9663,6 +9673,16 @@
 		)
 		(uuid "789745f1-c9e4-405c-b722-09f0b7387a91")
 	)
+	(text "BQ24295RGER\n"
+		(exclude_from_sim no)
+		(at 97.536 194.564 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "8a4fec2d-3935-454c-b558-f940b92866e0")
+	)
 	(text "Batt Charger"
 		(exclude_from_sim no)
 		(at 82.804 161.798 0)
@@ -9722,18 +9742,6 @@
 			)
 		)
 		(uuid "d9adb29d-d932-483f-a357-a100a4a7394d")
-	)
-	(text "SD-CARD NOT NESCESARY? ALREADY FEATURED ON SCREEN?"
-		(exclude_from_sim no)
-		(at 269.24 18.542 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
-			)
-		)
-		(uuid "dcedea50-e8c6-426a-a232-d041d78dcf7d")
 	)
 	(text "LoRa module"
 		(exclude_from_sim no)
