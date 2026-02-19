@@ -7307,8 +7307,8 @@
 		(uuid 3e3f9de2-a055-4d1d-8250-bbc0f2382993)
 	)
 	(rectangle
-		(start 114.3 66.04)
-		(end 188.595 113.665)
+		(start 210.82 -109.22)
+		(end 285.115 -61.595)
 		(stroke
 			(width 0)
 			(type default)
@@ -7355,8 +7355,8 @@
 		(uuid 64c18800-cdb3-4555-be9d-31985581d956)
 	)
 	(rectangle
-		(start 247.015 -29.21)
-		(end 286.385 -4.445)
+		(start 342.265 -80.01)
+		(end 381.635 -55.245)
 		(stroke
 			(width 0)
 			(type default)
@@ -7463,8 +7463,8 @@
 		(uuid ad79786e-401c-4187-af3e-64d130b11ba4)
 	)
 	(rectangle
-		(start 167.64 14.605)
-		(end 241.935 64.77)
+		(start 130.81 -109.855)
+		(end 205.105 -59.69)
 		(stroke
 			(width 0)
 			(type default)
@@ -7488,13 +7488,25 @@
 	)
 	(text "MT3608 (cheap)\nTPS61088 (performance)"
 		(exclude_from_sim no)
-		(at 270.51 -16.51 0)
+		(at 365.76 -67.31 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 		)
 		(uuid "012a217b-9dad-42f1-998b-6aedce3ee732")
+	)
+	(text "MAX98357AETE+T"
+		(exclude_from_sim no)
+		(at 218.694 -104.394 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+				(bold yes)
+			)
+		)
+		(uuid "0904fc06-d272-4600-94c9-f5f8b45483c2")
 	)
 	(text "Max out at 4V regardless of type?"
 		(exclude_from_sim no)
@@ -7518,7 +7530,7 @@
 	)
 	(text "Speaker Amplifier"
 		(exclude_from_sim no)
-		(at 116.332 86.614 90)
+		(at 212.852 -88.646 90)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7546,9 +7558,21 @@
 		)
 		(uuid "4614d178-9ead-4d70-ad02-29d52f8b7c7c")
 	)
+	(text "AUDIO IN"
+		(exclude_from_sim no)
+		(at 145.542 -111.506 0)
+		(effects
+			(font
+				(size 5 5)
+				(thickness 1)
+				(bold yes)
+			)
+		)
+		(uuid "48246c02-0134-417a-94ae-c9bae34a7628")
+	)
 	(text "Speaker I2S converter"
 		(exclude_from_sim no)
-		(at 123.444 68.834 0)
+		(at 219.964 -106.426 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7578,7 +7602,7 @@
 	)
 	(text "INMP441 (Microphone with built in amp and I2S converter"
 		(exclude_from_sim no)
-		(at 214.884 17.272 0)
+		(at 178.054 -107.188 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7598,7 +7622,7 @@
 	)
 	(text "Speaker"
 		(exclude_from_sim no)
-		(at 117.856 103.378 0)
+		(at 214.376 -71.882 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7608,7 +7632,7 @@
 	)
 	(text "Batt Boost"
 		(exclude_from_sim no)
-		(at 251.206 -27.432 0)
+		(at 346.456 -78.232 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7645,6 +7669,18 @@
 			)
 		)
 		(uuid "8a4fec2d-3935-454c-b558-f940b92866e0")
+	)
+	(text "AUDIO OUT"
+		(exclude_from_sim no)
+		(at 228.6 -110.998 0)
+		(effects
+			(font
+				(size 5 5)
+				(thickness 0.254)
+				(bold yes)
+			)
+		)
+		(uuid "961d84fe-120d-4b28-a1c6-37d32b445713")
 	)
 	(text "Batt Charger"
 		(exclude_from_sim no)
@@ -7718,7 +7754,7 @@
 	)
 	(text "Mic Amplifier"
 		(exclude_from_sim no)
-		(at 173.736 32.512 0)
+		(at 136.906 -91.948 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7738,7 +7774,7 @@
 	)
 	(text "Mic"
 		(exclude_from_sim no)
-		(at 170.688 16.764 0)
+		(at 133.858 -107.696 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7768,7 +7804,7 @@
 	)
 	(text "(AKK7AO)"
 		(exclude_from_sim no)
-		(at 182.626 68.326 0)
+		(at 279.146 -106.934 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7778,7 +7814,7 @@
 	)
 	(text "MAX98357A"
 		(exclude_from_sim no)
-		(at 172.466 68.326 0)
+		(at 268.986 -106.934 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -7788,7 +7824,7 @@
 	)
 	(text "Mic I2S converter"
 		(exclude_from_sim no)
-		(at 175.006 54.61 0)
+		(at 138.176 -69.85 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -8152,7 +8188,7 @@
 	)
 	(global_label "5V"
 		(shape input)
-		(at 168.91 74.93 0)
+		(at 265.43 -100.33 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8162,7 +8198,7 @@
 		)
 		(uuid "02202076-e5d2-47f5-bb57-fcb76b9677cb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 173.5823 74.93 0)
+			(at 270.1023 -100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8218,7 +8254,7 @@
 	)
 	(global_label "SPEAKER+"
 		(shape input)
-		(at 176.53 95.25 0)
+		(at 273.05 -80.01 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8228,7 +8264,7 @@
 		)
 		(uuid "1229c734-07cd-4635-9286-733ef10e493b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 186.545 95.25 0)
+			(at 283.065 -80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8394,7 +8430,7 @@
 	)
 	(global_label "5V"
 		(shape input)
-		(at 279.4 -21.59 0)
+		(at 374.65 -72.39 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8404,7 +8440,7 @@
 		)
 		(uuid "2d635840-cdcd-489e-8079-320721525538")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 284.0723 -21.59 0)
+			(at 379.3223 -72.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8724,7 +8760,7 @@
 	)
 	(global_label "SPEAKER-"
 		(shape input)
-		(at 168.91 86.36 0)
+		(at 265.43 -88.9 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8734,7 +8770,7 @@
 		)
 		(uuid "53b94ded-a4e5-45f1-a627-33356d327c76")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 178.5837 86.36 0)
+			(at 275.1037 -88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8944,7 +8980,7 @@
 	)
 	(global_label "SPEAKER+"
 		(shape input)
-		(at 168.91 83.82 0)
+		(at 265.43 -91.44 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8954,7 +8990,7 @@
 		)
 		(uuid "7adadada-7670-4add-ab88-4c74f69c7a96")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 178.925 83.82 0)
+			(at 275.445 -91.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9010,7 +9046,7 @@
 	)
 	(global_label "3.3V"
 		(shape input)
-		(at 190.5 26.67 180)
+		(at 153.67 -97.79 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -9020,7 +9056,7 @@
 		)
 		(uuid "89734d99-4976-42f5-ac93-6b0c0e0f923b")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 184.479 26.67 0)
+			(at 147.649 -97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9802,7 +9838,7 @@
 	)
 	(global_label "Batt-"
 		(shape input)
-		(at 260.35 -12.7 180)
+		(at 355.6 -63.5 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -9812,7 +9848,7 @@
 		)
 		(uuid "d67c2444-7334-4a1c-b75e-bd625fc10a10")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 254.1702 -12.7 0)
+			(at 349.4202 -63.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9890,7 +9926,7 @@
 	)
 	(global_label "SPEAKER-"
 		(shape input)
-		(at 176.53 97.79 0)
+		(at 273.05 -77.47 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -9900,7 +9936,7 @@
 		)
 		(uuid "dc684f3a-b6f6-465c-975b-1a3a7d6b4de1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 186.2037 97.79 0)
+			(at 282.7237 -77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10154,7 +10190,7 @@
 	)
 	(global_label "Batt+"
 		(shape input)
-		(at 260.35 -21.59 180)
+		(at 355.6 -72.39 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -10164,7 +10200,7 @@
 		)
 		(uuid "fb0a0d19-8da0-4e6b-9fe3-b53663e58f1a")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 253.7744 -21.59 0)
+			(at 349.0244 -72.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11314,7 +11350,7 @@
 	)
 	(symbol
 		(lib_id "Downloaded:MAX98357AETE_T")
-		(at 151.13 91.44 0)
+		(at 247.65 -83.82 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11323,7 +11359,7 @@
 		(fields_autoplaced yes)
 		(uuid "34a3c5e6-0ee8-4e18-8db5-eb64fa8f70e2")
 		(property "Reference" "U3"
-			(at 151.13 71.12 0)
+			(at 247.65 -104.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11331,7 +11367,7 @@
 			)
 		)
 		(property "Value" "MAX98357AETE_T"
-			(at 151.13 73.66 0)
+			(at 247.65 -101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11339,7 +11375,7 @@
 			)
 		)
 		(property "Footprint" "MAX98357AETE_T:QFN50P300X300X80-17N"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11349,7 +11385,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11358,7 +11394,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11367,7 +11403,7 @@
 			)
 		)
 		(property "MF" "Analog Devices"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11377,7 +11413,7 @@
 			)
 		)
 		(property "Description_1" "Tiny, Low-Cost, PCM Class D Amplifier with Class AB Performance"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11387,7 +11423,7 @@
 			)
 		)
 		(property "Package" "TQFN-16 Maxim"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11397,7 +11433,7 @@
 			)
 		)
 		(property "Price" "None"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11407,7 +11443,7 @@
 			)
 		)
 		(property "SnapEDA_Link" "https://www.snapeda.com/parts/MAX98357AETE+T/Analog+Devices/view-part/?ref=snap"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11417,7 +11453,7 @@
 			)
 		)
 		(property "MP" "MAX98357AETE+T"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11427,7 +11463,7 @@
 			)
 		)
 		(property "Availability" "In Stock"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11437,7 +11473,7 @@
 			)
 		)
 		(property "Check_prices" "https://www.snapeda.com/parts/MAX98357AETE+T/Analog+Devices/view-part/?ref=eda"
-			(at 151.13 91.44 0)
+			(at 247.65 -83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11899,7 +11935,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 226.06 46.99 0)
+		(at 189.23 -77.47 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11907,7 +11943,7 @@
 		(dnp no)
 		(uuid "4e67b09a-d6e9-49a6-8916-a8f128e013f3")
 		(property "Reference" "#PWR018"
-			(at 226.06 53.34 0)
+			(at 189.23 -71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11916,7 +11952,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 226.06 50.8 0)
+			(at 189.23 -73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11924,7 +11960,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 226.06 46.99 0)
+			(at 189.23 -77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11933,7 +11969,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 226.06 46.99 0)
+			(at 189.23 -77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11942,7 +11978,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 226.06 46.99 0)
+			(at 189.23 -77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12757,7 +12793,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 280.67 -12.7 0)
+		(at 375.92 -63.5 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -12765,7 +12801,7 @@
 		(dnp no)
 		(uuid "87c0f634-98ba-4872-9398-01bac7f6fe73")
 		(property "Reference" "#PWR023"
-			(at 280.67 -6.35 0)
+			(at 375.92 -57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12774,7 +12810,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 280.67 -8.89 0)
+			(at 375.92 -59.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12782,7 +12818,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 280.67 -12.7 0)
+			(at 375.92 -63.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12791,7 +12827,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 280.67 -12.7 0)
+			(at 375.92 -63.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12800,7 +12836,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 280.67 -12.7 0)
+			(at 375.92 -63.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13027,7 +13063,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x02_Pin")
-		(at 171.45 95.25 0)
+		(at 267.97 -80.01 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -13036,7 +13072,7 @@
 		(fields_autoplaced yes)
 		(uuid "94489e94-34b0-4138-a2fb-712c779f6e21")
 		(property "Reference" "J5"
-			(at 172.085 90.17 0)
+			(at 268.605 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13044,7 +13080,7 @@
 			)
 		)
 		(property "Value" "Conn_01x02_Pin"
-			(at 172.085 92.71 0)
+			(at 268.605 -82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13052,7 +13088,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal"
-			(at 171.45 95.25 0)
+			(at 267.97 -80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13061,7 +13097,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 171.45 95.25 0)
+			(at 267.97 -80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13070,7 +13106,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x02, script generated"
-			(at 171.45 95.25 0)
+			(at 267.97 -80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13360,7 +13396,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 168.91 104.14 0)
+		(at 265.43 -71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -13368,7 +13404,7 @@
 		(dnp no)
 		(uuid "a4927fcf-abaf-4a12-b6b0-746ee8a6da99")
 		(property "Reference" "#PWR021"
-			(at 168.91 110.49 0)
+			(at 265.43 -64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13377,7 +13413,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 168.91 107.95 0)
+			(at 265.43 -67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13385,7 +13421,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 168.91 104.14 0)
+			(at 265.43 -71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13394,7 +13430,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 168.91 104.14 0)
+			(at 265.43 -71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13403,7 +13439,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 168.91 104.14 0)
+			(at 265.43 -71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13425,7 +13461,7 @@
 	)
 	(symbol
 		(lib_id "Downloaded:INMP441")
-		(at 208.28 39.37 0)
+		(at 171.45 -85.09 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -13434,7 +13470,7 @@
 		(fields_autoplaced yes)
 		(uuid "a723c5bc-06c9-4e35-ae45-ea7fe623925c")
 		(property "Reference" "MK1"
-			(at 208.28 24.13 0)
+			(at 171.45 -100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13442,7 +13478,7 @@
 			)
 		)
 		(property "Value" "INMP441"
-			(at 208.28 26.67 0)
+			(at 171.45 -97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13450,7 +13486,7 @@
 			)
 		)
 		(property "Footprint" "USB4105-GF-A (1):MIC_INMP441"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13460,7 +13496,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13469,7 +13505,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13478,7 +13514,7 @@
 			)
 		)
 		(property "MF" "TDK InvenSense"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13488,7 +13524,7 @@
 			)
 		)
 		(property "MAXIMUM_PACKAGE_HEIGHT" "1.05 mm"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13498,7 +13534,7 @@
 			)
 		)
 		(property "Package" "None"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13508,7 +13544,7 @@
 			)
 		)
 		(property "Price" "None"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13518,7 +13554,7 @@
 			)
 		)
 		(property "Check_prices" "https://www.snapeda.com/parts/INMP441/TDK/view-part/?ref=eda"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13528,7 +13564,7 @@
 			)
 		)
 		(property "STANDARD" "Manufacturer Recommendations"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13538,7 +13574,7 @@
 			)
 		)
 		(property "PARTREV" "1.1"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13548,7 +13584,7 @@
 			)
 		)
 		(property "SnapEDA_Link" "https://www.snapeda.com/parts/INMP441/TDK/view-part/?ref=snap"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13558,7 +13594,7 @@
 			)
 		)
 		(property "MP" "INMP441"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13568,7 +13604,7 @@
 			)
 		)
 		(property "Description_1" "EVAL BOARD MEMS MIC INMP441"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13578,7 +13614,7 @@
 			)
 		)
 		(property "Availability" "In Stock"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -13588,7 +13624,7 @@
 			)
 		)
 		(property "MANUFACTURER" "TDK InvenSense"
-			(at 208.28 39.37 0)
+			(at 171.45 -85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
