@@ -1,4 +1,4 @@
-26869404969592176
+26874719994238099
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -105987,6 +105987,20 @@ Surface mounted socket strip SMD 1x18 2.54mm single row style1 pin1 left
 18
 18
 USB4105-GF-A (1)
+SOP65P640X120-8N
+
+
+0
+8
+8
+USB4105-GF-A (1)
+SOP127P600X175-9N
+
+
+0
+9
+9
+USB4105-GF-A (1)
 SOT65P215X110-6N
 
 
@@ -106002,6 +106016,13 @@ Tactile Switch
 2
 USB4105-GF-A (1)
 Untitled
+
+
+0
+0
+0
+USB4105-GF-A (1)
+Untitled_1
 
 
 0
