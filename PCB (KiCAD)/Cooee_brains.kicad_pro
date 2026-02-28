@@ -480,9 +480,9 @@
     },
     "net_colors": {
       "3.3V": "rgb(255, 160, 0)",
-      "5V": "rgb(255, 26, 0)",
-      "Batt+": "rgb(255, 0, 73)",
-      "GND": "rgb(47, 127, 255)"
+      "5V": "rgb(255, 75, 0)",
+      "Batt+": "rgb(255, 0, 94)",
+      "GND": "rgb(68, 154, 232)"
     },
     "netclass_assignments": null,
     "netclass_patterns": []

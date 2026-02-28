@@ -2,7 +2,9 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <RadioLib.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SSD1306.h> //HTV3 OLED drivers
+#include <cmath>
+#include <cstring> // std::memcpy
 
 #include "FS.h"
 #include <LittleFS.h>
@@ -21,13 +23,31 @@
 
 #ifdef SPEAKER
 
-#define SPEAKER_I2S_PORT I2S_NUM_0
+#define SPEAKER_I2S_PORT I2S_NUM_1
 //=====SPEAKER :  AUDIO OUT
-#define SPEAKER_I2S_DOUT 6
-#define SPEAKER_I2S_BCLK 48
+#define SPEAKER_I2S_DOUT 48
+#define SPEAKER_I2S_BCLK 47
 #define SPEAKER_I2S_LRC 7
-#include "Audio.h"
-Audio speaker_audio;
+
+const int devices_sample_rate = 8000;
+
+i2s_pin_config_t speaker_i2spins = {
+    .bck_io_num = SPEAKER_I2S_BCLK,
+    .ws_io_num = SPEAKER_I2S_LRC,
+    .data_out_num = SPEAKER_I2S_DOUT,
+    .data_in_num = I2S_PIN_NO_CHANGE};
+
+i2s_config_t speaker_i2sconfig = {
+    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
+    .sample_rate = devices_sample_rate,
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+    .channel_format = I2S_CHANNEL_FMT_ALL_LEFT,
+    .communication_format = I2S_COMM_FORMAT_STAND_I2S,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    //.intr_alloc_flags = 0,
+    .dma_buf_count = 8,
+    .dma_buf_len = 512,
+    .use_apll = false};
 
 #endif
 
@@ -54,7 +74,7 @@ extern XPT2046_Touchscreen ts;
 
 #ifdef MICROPHONE //=====MICROPHONE :  AUDIO IN
 
-#define MIC_I2S_PORT I2S_NUM_1
+#define MIC_I2S_PORT I2S_NUM_0
 #define MIC_I2S_DOUT 4
 #define MIC_I2S_BCLK 5
 #define MIC_I2S_LRC 3
@@ -65,14 +85,14 @@ extern XPT2046_Touchscreen ts;
 
 i2s_config_t mic_i2sconfig = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-    .sample_rate = 16000,
+    .sample_rate = devices_sample_rate,
     .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
     .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
+    //.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
     .communication_format = I2S_COMM_FORMAT_STAND_I2S,
-    //.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-    .intr_alloc_flags = 0,
-    .dma_buf_count = 4,
-    .dma_buf_len = 128,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    .dma_buf_count = 8,
+    .dma_buf_len = 512,
     .use_apll = false};
 
 i2s_pin_config_t mic_i2spins = {
@@ -95,12 +115,6 @@ i2s_pin_config_t mic_i2spins = {
 #define LED_W 35
 #define BOOT_BTN 0
 
-#define ADC_BUFFER_SIZE 320                    // 40ms of voice in 8KHz sampling frequency
-int16_t mic_input_adc_buffer[ADC_BUFFER_SIZE]; // the ESP's ADC will be expected to store up it's input values for a while, which will be copied into 'mic_input_buffer' when it's full
-int16_t mic_input_buffer[ADC_BUFFER_SIZE];
-int16_t output_buffer[ADC_BUFFER_SIZE];
-uint8_t transmitBuffer[ADC_BUFFER_SIZE];
-
 // LoRa module (SX1262) pins
 #define LoRa_MOSI 10
 #define LoRa_MISO 11
@@ -113,7 +127,9 @@ uint8_t transmitBuffer[ADC_BUFFER_SIZE];
 #define LoRa_en_Tx 15
 #define LoRa_en_Rx 16
 
-uint8_t buffer[196];
+uint8_t codec_buffer[196];
+const int audio_buffer_size = 128;
+int32_t locally_saved_recording[audio_buffer_size * 256]; // enough for ~2 seconds of voice samples at 8KHz samplerate
 
 #ifdef HT3_OLED
 #define SCREEN_WIDTH 128
@@ -263,26 +279,16 @@ void RecieveLoRaMessage()
 void setup()
 {
   Serial.begin(115200);
+  // MakeSineWave(locally_saved_recording, sizeof(locally_saved_recording));
 
 #ifdef SPEAKER
-  speaker_audio.setPinout(SPEAKER_I2S_BCLK, SPEAKER_I2S_LRC, SPEAKER_I2S_DOUT);
-  speaker_audio.setVolume(10); // 0...21
+  i2s_driver_install(SPEAKER_I2S_PORT, &speaker_i2sconfig, 0, NULL);
+  i2s_set_pin(SPEAKER_I2S_PORT, &speaker_i2spins);
 #endif
 
 #ifdef MICROPHONE
-
-  // mic_audio.setPinout(MIC_I2S_BCLK, MIC_I2S_LRC, MIC_I2S_DOUT);
   i2s_driver_install(MIC_I2S_PORT, &mic_i2sconfig, 0, NULL);
   i2s_set_pin(MIC_I2S_PORT, &mic_i2spins);
-
-  /*
-  if (!I2S.begin(I2S_PHILIPS_MODE, 8000, 32))
-  {
-    Serial.println("Failed to initialize I2S!");
-    while (1)
-      ; // do nothing
-  } */
-
 #endif
 
 #ifdef LCD_4ELECRO
@@ -354,30 +360,124 @@ void setup()
 
   // this is codec2 compression stuff
   TinyCBOR.init();
-  TinyCBOR.Encoder.init(buffer, sizeof(buffer));
+  TinyCBOR.Encoder.init(codec_buffer, sizeof(codec_buffer));
 
   Serial.println("setup complete!");
   display.println("Setup complete!");
 }
 
+void PlayRecording() // play the sample on the speaker
+{
+  Serial.print("PlayRecording: -- START --");
+#ifdef SPEAKER
+
+  // size_t bytes_to_write = sizeof(locally_saved_recording);
+  size_t bytes_to_write = audio_buffer_size * 4;
+  int loops = sizeof(locally_saved_recording) / audio_buffer_size;
+  size_t bytes_written;
+  for (int l = 0; l <= loops - 1; l++)
+  {
+    esp_err_t err = i2s_write(SPEAKER_I2S_PORT, &locally_saved_recording[l * audio_buffer_size], bytes_to_write, &bytes_written, portMAX_DELAY);
+    Serial.print("loop: " + String(l) + ", PlayRecording() just wrote: " + String(bytes_written) + " bytes \n");
+    if (err != ESP_OK)
+    {
+      Serial.print("An error occured while trying to send audio to speaker: " + err);
+    }
+
+    // wait the amount of time that this amount of samples should take to play?
+    // delay(audio_buffer_size / 16);
+  }
+
+#endif
+  Serial.print("PlayRecording: -- FINISHED --");
+  return;
+}
+
+size_t recording_index = 0;
+
+bool feedback = false;
+int32_t GetAudioSamples(int32_t *buffer, size_t bytes_to_get, bool give_level = false)
+{
+  int32_t temp_buffer[bytes_to_get];
+  size_t bytesRead;
+  i2s_read(MIC_I2S_PORT, temp_buffer, bytes_to_get, &bytesRead, portMAX_DELAY);
+  Serial.print("i2s_read just read " + String(bytesRead) + " bytes \n");
+  std::memcpy(buffer, temp_buffer, bytesRead);
+
+  /*
+  if (feedback)
+  {
+    size_t bytes_written;
+    esp_err_t err = i2s_write(SPEAKER_I2S_PORT, buffer, bytesRead, &bytes_written, portMAX_DELAY);
+    Serial.print("i2s_write just wrote " + String(bytes_written) + " bytes \n");
+    if (err != ESP_OK)
+    {
+      Serial.print("An error occured while trying to send audio to speaker: " + err);
+    }
+  }
+  */
+
+  /*
+  if (give_level)
+  {
+    int32_t samples_average_value = 0;
+    for (size_t i = 0; i < bytes_to_get * 0.25; i++)
+    {
+      samples_average_value += abs(temp_buffer[i] >> 14);
+    }
+    samples_average_value /= audio_buffer_size;
+
+    return samples_average_value;
+  }
+  else
+  {
+    return bytesRead;
+  }*/
+
+  return bytesRead;
+}
+
+/*
+void RecordAudio(size_t *start_index, int32_t *buffer, size_t buffer_size)
+{
+  int number_of_samples = 80;
+  int32_t samples[number_of_samples]; // samples are coming at a rate of 8000 per second, so 80 is 0.01s
+  size_t bytesWritten;
+
+  i2s_read(MIC_I2S_PORT, samples, sizeof(samples), &bytesWritten, 40);
+
+  for (size_t i = 0; i < number_of_samples; i++) // transfer the samples into a locally saved recording array
+  {
+    if (start_index + i >= buffer_size) // prevent overflow of the recording array
+    {
+      start_index = 0 - i; // don't go out of range of the array
+    }
+    else
+    {
+      buffer[start_index + i] = samples[i];
+    }
+  }
+
+  start_index += number_of_samples;
+}
+  */
+
 float Get_Mic_Level()
 {
-  int32_t samples[128];
+  int32_t samples[audio_buffer_size]; // 32bit ints which means 4x8 4bytes data per int/sample
   size_t bytesRead;
 
-  i2s_read(MIC_I2S_PORT, samples, sizeof(samples), &bytesRead, portMAX_DELAY);
+  i2s_read(MIC_I2S_PORT, samples, audio_buffer_size, &bytesRead, portMAX_DELAY);
 
   Serial.println(bytesRead);
 
-  int count = bytesRead / 4;
   float level = 0;
-
-  for (int i = 0; i < count; i++)
+  for (int i = 0; i < audio_buffer_size; i++)
   {
-    level += abs(samples[i] >> 14);
+    level += abs(samples[i] >> 8);
   }
-
-  level = level / count;
+  level *= 0.001f;
+  level = level / audio_buffer_size;
   return level;
 }
 
@@ -412,7 +512,7 @@ uint8_t *encodePayload(uint8_t senderID, uint8_t topicID, uint8_t targetID, Stri
 
   TinyCBOR.Encoder.close_container();
 
-  return buffer;
+  return codec_buffer;
 }
 
 void decodePayload(uint8_t *payload)
@@ -454,7 +554,10 @@ TS_Point calibratedPoint(TS_Point p)
 }
 #endif
 
+// -- MAIN LOOP --
 bool blink = false;
+bool transmitting = false;
+bool draw_waveform = false;
 void loop()
 {
 #ifdef LCD_4ELECRO
@@ -474,34 +577,89 @@ void loop()
   }
 #endif
 
-  // i2s_config_t test;
-  // i2s_get_clk(MIC_I2S_PORT);
-
-  float mic_in = Get_Mic_Level() * 0.01f;
-  // int sample = I2S.read();
-
+  // float mic_in = Get_Mic_Level();
+  // oled_message = mic_in;
   display.clearDisplay();
-  display.drawCircle(SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.5, mic_in, SSD1306_WHITE);
 
-  int16_t samples[128];
-  size_t numSamples = 0;
-  oled_message = (String)mic_in;
+  // int32_t level_display = GetAudioSamples(&locally_saved_recording[recording_index], 40, false);
+  // oled_message = level_display;
+  // display.fillCircle(SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.5, ((level_display - 20000) * 0.03f), SSD1306_WHITE);
 
   if (digitalRead(BOOT_BTN) == LOW)
   {
     // PRG button pressed
-
-    // record the MIC_IN adc (should be talking)
-
-    // compress the recorded waveform using Codec2
+    if (!transmitting)
+    {
+      transmitting = true;
+      recording_index = 0;
+    }
   }
   else
   {
+    if (transmitting) // we WERE just transmitting, so play the samples back once
+    {
+      oled_message = "Playing >>>";
+      display.clearDisplay();
+      display.drawRect(28, 4, 100, 60, SSD1306_WHITE);
+      display.display();
+      transmitting = false;
+      recording_index = 0;
+      if (!feedback)
+      {
+        if (draw_waveform)
+        {
+          // draw the recorded wave (or at least a part of the front of it anyway)
+
+          int segment_width = audio_buffer_size * 64 / 128;
+          for (int i = 0; i < 128; i++)
+          {
+            int32_t ave = 0;
+            for (int x = 0; x < segment_width; x++)
+            {
+              // FIXME: we need to check that this wont go beyond the array bounds!!!
+              ave += abs(locally_saved_recording[(i * segment_width) + x] >> 15);
+            }
+            ave /= segment_width;
+            display.drawLine(i, 32 - ave, i, segment_width + ave, SSD1306_WHITE);
+          }
+          display.display();
+        }
+        // actually send the audio to the speaker
+        PlayRecording();
+      }
+
+      oled_message = "Finished playing [_]";
+    }
+
     // RecieveLoRaMessage();
   }
 
-  display.setCursor(0, 0);
-  display.print(oled_message);
+  if (transmitting) // record the MIC_IN adc (should be talking)
+  {
+    oled_message = "REC... " + (String)recording_index;
+    display.drawLine(0, 32, (recording_index / audio_buffer_size * 128) / 128, 32, SSD1306_WHITE);
+    display.display();
+
+    int32_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size * 4);
+    if (!feedback)
+    {
+      recording_index += audio_buffer_size;
+      if (recording_index >= sizeof(locally_saved_recording))
+      {
+        recording_index -= sizeof(locally_saved_recording);
+      }
+    }
+
+    // float level = Get_Mic_Level();
+    // display.setCursor(0, 20);
+    // display.print(ave_value);
+    // display.fillCircle(64, 32, ave_value, SSD1306_WHITE);
+
+    // compress the recorded waveform using Codec2
+  }
+
+  // display.setCursor(0, 0);
+  // display.print(oled_message);
   if (blink)
   {
     display.fillCircle(124, 60, 2, SSD1306_WHITE);
