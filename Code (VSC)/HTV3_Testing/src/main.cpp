@@ -1,7 +1,7 @@
 /* TODO
-try having the mic in 'slave' .mode
-read the datasheet of the amp chip or just give up on it and try the MAX chips when they get here...
-
+1. figure out how to encode our samples with codec2
+  a. Codec2 seems to want samples in 16bit, figure out how to either convert our 32bit samples to 16bit or read them directly as 16bit
+2. implement 'feedback' sending the samples read each frame directly back out the speaker
 */
 
 #include <Arduino.h>
@@ -11,12 +11,9 @@ read the datasheet of the amp chip or just give up on it and try the MAX chips w
 #include <Adafruit_SSD1306.h> //HTV3 OLED drivers
 #include <cmath>
 #include <cstring> // std::memcpy
-
 #include "FS.h"
 #include <LittleFS.h>
-#include <tinycbor.h>
 #include <driver/i2s.h>
-// #include <I2S.h>
 
 /* - -----     ENABLE/DISABLE FEATURES ----- - */
 // #define LCD_4ELECRO
@@ -151,6 +148,12 @@ Adafruit_SSD1306 display(
     &Wire,
     oled_rst);
 #endif
+
+//-- AUDIO ENCODING --
+#define ENCODE_FRAME_SIZE 44
+struct CODEC2 *codec2_state;
+unsigned char tx_encode_frame[ENCODE_FRAME_SIZE];
+int tx_encode_frame_index = 0;
 
 enum Topic : uint8_t
 {
@@ -313,7 +316,6 @@ void RecieveLoRaMessage()
 void setup()
 {
   Serial.begin(115200);
-  // MakeSineWave(locally_saved_recording, sizeof(locally_saved_recording));
 
   /*
   // initialise the file‑system
@@ -325,7 +327,11 @@ void setup()
     return;
   }
   Serial.println("LittleFS mounted");
-*/
+  */
+
+  // Init codec2
+  codec2_state = codec2_create(CODEC2_MODE_1600);
+  codec2_set_lpc_post_filter(codec2_state, 1, 0, 0.8, 0.2);
 
 #ifdef SPEAKER
   i2s_driver_install(SPEAKER_I2S_PORT, &speaker_i2sconfig, 0, NULL);
@@ -404,10 +410,6 @@ void setup()
     Serial.print(F("failed to initialize LoRa radio: " + radio_state));
   }
 
-  // this is codec2 compression stuff
-  TinyCBOR.init();
-  TinyCBOR.Encoder.init(codec_buffer, sizeof(codec_buffer));
-
   Serial.println("setup complete!");
   display.println("Setup complete!");
 }
@@ -466,70 +468,18 @@ int32_t GetAudioSamples(int32_t *buffer, size_t samples_to_get, bool give_level 
   i2s_read(MIC_I2S_PORT, temp_buffer, samples_to_get * bytes_per_sample, &bytesRead, portMAX_DELAY);
   // Serial.print("i2s_read just read " + String(bytesRead) + " bytes \n");
 
+  int32_t samples_average_value = 0;
   for (int i = 0; i < samples_to_get; i++)
   {
     temp_buffer[i] *= input_gain;
+    samples_average_value += abs(temp_buffer[i] >> 14);
   }
+  samples_average_value /= samples_to_get;
 
-  std::memcpy(buffer, temp_buffer, bytesRead); // onyl 'paste' in the number of bytes that were populated with samples in the buffer. temp_buffer now contains the entire buffer, populated or not, which means there will be a lot of zeroes in there!
+  std::memcpy(buffer, temp_buffer, bytesRead); // only 'paste' in the number of bytes that were populated with samples in the buffer. temp_buffer now contains the entire buffer, populated or not, which means there will be a lot of zeroes in there!
 
-  /*
-  if (feedback)
-  {
-    size_t bytes_written;
-    esp_err_t err = i2s_write(SPEAKER_I2S_PORT, buffer, bytesRead, &bytes_written, portMAX_DELAY);
-    Serial.print("i2s_write just wrote " + String(bytes_written) + " bytes \n");
-    if (err != ESP_OK)
-    {
-      Serial.print("An error occured while trying to send audio to speaker: " + err);
-    }
-  }
-  */
-
-  /*
-  if (give_level)
-  {
-    int32_t samples_average_value = 0;
-    for (size_t i = 0; i < samples_to_get * 0.25; i++)
-    {
-      samples_average_value += abs(temp_buffer[i] >> 14);
-    }
-    samples_average_value /= audio_buffer_size;
-
-    return samples_average_value;
-  }
-  else
-  {
-    return bytesRead;
-  }*/
-
-  return bytesRead;
+  return samples_average_value;
 }
-
-/*
-void RecordAudio(size_t *start_index, int32_t *buffer, size_t buffer_size)
-{
-  int number_of_samples = 80;
-  int32_t samples[number_of_samples]; // samples are coming at a rate of 8000 per second, so 80 is 0.01s
-  size_t bytesWritten;
-
-  i2s_read(MIC_I2S_PORT, samples, sizeof(samples), &bytesWritten, 40);
-
-  for (size_t i = 0; i < number_of_samples; i++) // transfer the samples into a locally saved recording array
-  {
-    if (start_index + i >= buffer_size) // prevent overflow of the recording array
-    {
-      start_index = 0 - i; // don't go out of range of the array
-    }
-    else
-    {
-      buffer[start_index + i] = samples[i];
-    }
-  }
-
-  start_index += number_of_samples;
-}
-  */
 
 float Get_Mic_Level()
 {
@@ -564,28 +514,6 @@ void ChangeChannel(int chan)
 
   // Change frequency
   radio.setFrequency(915.2 + (chan * 0.2));
-}
-
-uint8_t *encodePayload(uint8_t senderID, uint8_t topicID, uint8_t targetID, String message)
-{
-
-  // TinyCBOR.Encoder.create_map(3);            // 3 key-value pairs
-  // TinyCBOR.Encoder.encode_text_stringz("sid");
-  // TinyCBOR.Encoder.encode_uint(senderID);
-
-  TinyCBOR.Encoder.create_array(4);
-  TinyCBOR.Encoder.encode_uint(senderID);
-  TinyCBOR.Encoder.encode_uint(topicID);
-  TinyCBOR.Encoder.encode_uint(targetID);
-  TinyCBOR.Encoder.encode_text_stringz(message.c_str());
-
-  TinyCBOR.Encoder.close_container();
-
-  return codec_buffer;
-}
-
-void decodePayload(uint8_t *payload)
-{
 }
 
 void sendRandomStringLoRaMsg()
@@ -668,38 +596,11 @@ void loop()
     {
       transmitting = false;
       // SaveSamples();
-      PlayRecording();
-      /*
+
       oled_message = "Playing >>>";
-      display.clearDisplay();
-      display.drawRect(28, 4, 100, 60, SSD1306_WHITE);
       display.display();
 
-      recording_index = 0;
-      if (!feedback)
-      {
-        if (draw_waveform)
-        {
-          // draw the recorded wave (or at least a part of the front of it anyway)
-
-          int segment_width = audio_buffer_size * 64 / 128;
-          for (int i = 0; i < 128; i++)
-          {
-            int32_t ave = 0;
-            for (int x = 0; x < segment_width; x++)
-            {
-              // FIXME: we need to check that this wont go beyond the array bounds!!!
-              ave += abs(locally_saved_recording[(i * segment_width) + x] >> 15);
-            }
-            ave /= segment_width;
-            display.drawLine(i, 32 - ave, i, segment_width + ave, SSD1306_WHITE);
-          }
-          display.display();
-        }
-        // actually send the audio to the speaker
-        PlayRecording();
-      }
-      */
+      PlayRecording();
 
       oled_message = "Finished playing [_]";
     }
@@ -713,15 +614,17 @@ void loop()
     display.drawLine(0, OLED_HEIGHT / 2, (recording_index / audio_buffer_size * recording_length) / OLED_WIDTH, OLED_HEIGHT / 2, SSD1306_WHITE);
     display.display();
 
-    // FIXME: if ( sizeof(locally_saved_recording) < (recording_index * 4)+audio_buffer_size) // ensure we dont overflow the array
     if (true)
     {
-      int32_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size);
+      int32_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
       recording_index += audio_buffer_size;
       if (recording_index >= (audio_buffer_size * recording_length)) // wrap around the array
       {
         recording_index -= (audio_buffer_size * recording_length);
       }
+      display.setCursor(0, 20);
+      display.print(ave_value);
+      display.fillCircle(64, 32, ave_value * 0.001, SSD1306_WHITE);
     }
     else
     {
@@ -730,16 +633,14 @@ void loop()
       Serial.println("Recording this last chunk would overflow the range of the saved sample array, skipping");
       recording_index = 0;
     }
-    // float level = Get_Mic_Level();
-    // display.setCursor(0, 20);
-    // display.print(ave_value);
-    // display.fillCircle(64, 32, ave_value, SSD1306_WHITE);
 
     // compress the recorded waveform using Codec2
+    // codec2_encode(codec2_state, tx_encode_frame + tx_encode_frame_index, locally_saved_recording);
+    // FIXME: where does this put the encoded data?!'
   }
 
   // display.setCursor(0, 0);
-  // display.print(oled_message);
+  display.print(oled_message);
   if (blink)
   {
     display.fillCircle(124, 60, 2, SSD1306_WHITE);
