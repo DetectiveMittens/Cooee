@@ -14,7 +14,7 @@
 #include "FS.h"
 #include <LittleFS.h>
 #include <driver/i2s.h>
-#include "codec2.h"
+// #include "codec2.h"
 
 /* - -----     ENABLE/DISABLE FEATURES ----- - */
 // #define LCD_4ELECRO
@@ -24,6 +24,7 @@
 #define GPS
 #define BATTERY
 #define HT3_OLED
+#define LORA_RADIO
 
 const int bytes_per_sample = 2;
 const int recording_length = 128;
@@ -238,7 +239,30 @@ void SendLoRaMessage(String msg)
   }
   else
   { // some other error occurred
-    Serial.print(F("failed, code "));
+    Serial.print(F("transmit failed, code "));
+    Serial.println(result);
+  }
+}
+
+void SendLoRaMessage(uint8_t *data, size_t len)
+{
+  int result = radio.transmit(data, len);
+
+  if (result == RADIOLIB_ERR_NONE)
+  { // the packet was successfully transmitted
+    Serial.println(F("Success!"));
+  }
+  else if (result == RADIOLIB_ERR_PACKET_TOO_LONG)
+  { // the supplied packet was longer than 256 bytes
+    Serial.println(F("too long!"));
+  }
+  else if (result == RADIOLIB_ERR_TX_TIMEOUT)
+  { // timeout occured while transmitting packet
+    Serial.println(F("timeout!"));
+  }
+  else
+  { // some other error occurred
+    Serial.print(F("transmit failed, code "));
     Serial.println(result);
   }
 }
@@ -384,6 +408,7 @@ void setup()
   display.display();
 #endif
 
+#ifdef LORA_RADIO
   // Initialize LoRa
   SPI.begin(LoRa_SCK, LoRa_MISO, LoRa_MOSI, LoRa_nss);
   pinMode(LoRa_en_Rx, OUTPUT);
@@ -408,6 +433,7 @@ void setup()
   {
     Serial.print(F("failed to initialize LoRa radio: " + radio_state));
   }
+#endif
 
   Serial.println("setup complete!");
   display.println("Setup complete!");
@@ -463,13 +489,6 @@ int16_t GetAudioSamples(int16_t *buffer, size_t samples_to_get, bool give_level 
   if (false)
   {
     // compress the recorded waveform using Codec2
-    codec2_encode(codec2_state, tx_encode_frame + tx_encode_frame_index, temp_buffer);
-    tx_encode_frame_index += ENCODE_FRAME_BYTES;
-    if (tx_encode_frame_index >= ENCODE_CODEC2_PACKET_BYTES) // packet is full
-    {
-      tx_encode_frame_index = 0;
-      // SendEncodedAudioOverLoRa();
-    }
 
     // Recieve the compressed bits over LoRa
     // Decode the compressed bits
@@ -626,8 +645,16 @@ void loop()
         }
 
         // encode samples_to_encode[]
-
-        // store this encoded 320samples -> 8bytes of compressed audio, into another buffer, we will sent it over lora once we collect 40 total bytes
+        codec2_encode(codec2_state, tx_encode_frame + tx_encode_frame_index, samples_to_encode);
+        // store this encoded 320samples -> 8bytes of compressed audio, into the 'tx_encode_frame'  buffer, we will sent it over lora once we collect 40 total bytes
+        tx_encode_frame_index += ENCODE_FRAME_BYTES;
+        if (tx_encode_frame_index >= ENCODE_CODEC2_PACKET_BYTES) // packet is full (40 bytes)
+        {
+          tx_encode_frame_index = 0;
+#ifdef LORA_RADIO
+          SendLoRaMessage(tx_encode_frame, sizeof(tx_encode_frame));
+#endif
+        }
 
         // then incremement the index to chase the end of the saved samples
         transmitting_index += 320;
