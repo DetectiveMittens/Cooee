@@ -1,6 +1,6 @@
 /* TODO
+0. switch to 320, 8KHz samples
 1. figure out how to encode our samples with codec2
-  a. Codec2 seems to want samples in 16bit, figure out how to either convert our 32bit samples to 16bit or read them directly as 16bit
 2. implement 'feedback' sending the samples read each frame directly back out the speaker
 */
 
@@ -14,6 +14,7 @@
 #include "FS.h"
 #include <LittleFS.h>
 #include <driver/i2s.h>
+#include "codec2.h"
 
 /* - -----     ENABLE/DISABLE FEATURES ----- - */
 // #define LCD_4ELECRO
@@ -25,12 +26,10 @@
 #define HT3_OLED
 
 const int32_t devices_devices_sample_rate = 16000;
-#define BITS_PER_SAMPLE 32
-const int bytes_per_sample = 4;
-uint8_t codec_buffer[196];
+const int bytes_per_sample = 2;
 const int recording_length = 64;
 const int audio_buffer_size = 1024;
-int32_t locally_saved_recording[audio_buffer_size * recording_length]; // enough for ~2 seconds of voice samples at 8KHz samplerate
+int16_t locally_saved_recording[audio_buffer_size * recording_length]; // enough for ~2 seconds of voice samples at 8KHz samplerate
 
 #ifdef SPEAKER //=====SPEAKER :  AUDIO OUT
 
@@ -48,7 +47,7 @@ i2s_pin_config_t speaker_i2spins = {
 i2s_config_t speaker_i2sconfig = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
     .sample_rate = devices_devices_sample_rate / 2,
-    .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
     .channel_format = I2S_CHANNEL_FMT_ALL_LEFT,
     .communication_format = I2S_COMM_FORMAT_STAND_I2S,
     .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
@@ -94,7 +93,7 @@ extern XPT2046_Touchscreen ts;
 i2s_config_t mic_i2sconfig = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
     .sample_rate = devices_devices_sample_rate,
-    .bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+    .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
     .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
     //.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
     .communication_format = I2S_COMM_FORMAT_STAND_I2S,
@@ -150,9 +149,10 @@ Adafruit_SSD1306 display(
 #endif
 
 //-- AUDIO ENCODING --
-#define ENCODE_FRAME_SIZE 44
 struct CODEC2 *codec2_state;
-unsigned char tx_encode_frame[ENCODE_FRAME_SIZE];
+#define ENCODE_FRAME_BYTES 8
+#define ENCODE_CODEC2_PACKET_BYTES 40 // wait for 5 x 8byte frames before sending over LoRa
+unsigned char tx_encode_frame[ENCODE_CODEC2_PACKET_BYTES];
 int tx_encode_frame_index = 0;
 
 enum Topic : uint8_t
@@ -200,7 +200,7 @@ void SaveSamples()
 {
 
   Serial.println("Here's all the samples: ");
-  for (int32_t sample : locally_saved_recording)
+  for (int16_t sample : locally_saved_recording)
   {
     Serial.print(String(sample) + ",");
   }
@@ -417,10 +417,11 @@ void setup()
 void PlayRecording() // play the sample on the speaker
 {
   Serial.print("PlayRecording: -- START --");
+
 #ifdef SPEAKER
   bool split_into_chunks = false;
   // size_t bytes_to_write = sizeof(locally_saved_recording);
-  size_t bytes_to_write = audio_buffer_size * 4;
+  size_t bytes_to_write = audio_buffer_size * bytes_per_sample;
   int loops = sizeof(locally_saved_recording) / audio_buffer_size;
   size_t bytes_written;
 
@@ -459,16 +460,14 @@ void PlayRecording() // play the sample on the speaker
 size_t recording_index = 0;
 
 bool feedback = false;
-int32_t GetAudioSamples(int32_t *buffer, size_t samples_to_get, bool give_level = false)
+int16_t GetAudioSamples(int16_t *buffer, size_t samples_to_get, bool give_level = false)
 {
-  int32_t input_gain = 40;
-  int32_t temp_buffer[samples_to_get];
-  // int32_t raw[samples_to_get];
+  int16_t input_gain = 40;
+  int16_t temp_buffer[samples_to_get];
   size_t bytesRead;
   i2s_read(MIC_I2S_PORT, temp_buffer, samples_to_get * bytes_per_sample, &bytesRead, portMAX_DELAY);
-  // Serial.print("i2s_read just read " + String(bytesRead) + " bytes \n");
 
-  int32_t samples_average_value = 0;
+  int16_t samples_average_value = 0;
   for (int i = 0; i < samples_to_get; i++)
   {
     temp_buffer[i] *= input_gain;
@@ -478,12 +477,33 @@ int32_t GetAudioSamples(int32_t *buffer, size_t samples_to_get, bool give_level 
 
   std::memcpy(buffer, temp_buffer, bytesRead); // only 'paste' in the number of bytes that were populated with samples in the buffer. temp_buffer now contains the entire buffer, populated or not, which means there will be a lot of zeroes in there!
 
+  if (false)
+  {
+    // compress the recorded waveform using Codec2
+    codec2_encode(codec2_state, tx_encode_frame + tx_encode_frame_index, temp_buffer);
+    tx_encode_frame_index += ENCODE_FRAME_BYTES;
+    if (tx_encode_frame_index >= ENCODE_CODEC2_PACKET_BYTES) // packet is full
+    {
+      tx_encode_frame_index = 0;
+      // SendEncodedAudioOverLoRa();
+    }
+
+    // Recieve the compressed bits over LoRa
+    // Decode the compressed bits
+    int16_t decoded_samples[samples_to_get];
+    codec2_decode(codec2_state, decoded_samples, tx_encode_frame);
+
+    // Play Feedback
+    size_t bytes_written;
+    esp_err_t err = i2s_write(SPEAKER_I2S_PORT, decoded_samples, bytesRead, &bytes_written, portMAX_DELAY);
+  }
+
   return samples_average_value;
 }
 
 float Get_Mic_Level()
 {
-  int32_t samples[audio_buffer_size]; // 32bit ints which means 4x8 4bytes data per int/sample
+  int16_t samples[audio_buffer_size]; // 32bit ints which means 4x8 4bytes data per int/sample
   size_t bytesRead;
 
   i2s_read(MIC_I2S_PORT, samples, audio_buffer_size, &bytesRead, portMAX_DELAY);
@@ -616,7 +636,7 @@ void loop()
 
     if (true)
     {
-      int32_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
+      int16_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
       recording_index += audio_buffer_size;
       if (recording_index >= (audio_buffer_size * recording_length)) // wrap around the array
       {
@@ -633,10 +653,6 @@ void loop()
       Serial.println("Recording this last chunk would overflow the range of the saved sample array, skipping");
       recording_index = 0;
     }
-
-    // compress the recorded waveform using Codec2
-    // codec2_encode(codec2_state, tx_encode_frame + tx_encode_frame_index, locally_saved_recording);
-    // FIXME: where does this put the encoded data?!'
   }
 
   // display.setCursor(0, 0);
