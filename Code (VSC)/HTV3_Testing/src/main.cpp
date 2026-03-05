@@ -25,9 +25,8 @@
 #define BATTERY
 #define HT3_OLED
 
-const int32_t devices_devices_sample_rate = 16000;
 const int bytes_per_sample = 2;
-const int recording_length = 64;
+const int recording_length = 128;
 const int audio_buffer_size = 1024;
 int16_t locally_saved_recording[audio_buffer_size * recording_length]; // enough for ~2 seconds of voice samples at 8KHz samplerate
 
@@ -46,9 +45,9 @@ i2s_pin_config_t speaker_i2spins = {
 
 i2s_config_t speaker_i2sconfig = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
-    .sample_rate = devices_devices_sample_rate / 2,
+    .sample_rate = 8000,
     .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
-    .channel_format = I2S_CHANNEL_FMT_ALL_LEFT,
+    .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
     .communication_format = I2S_COMM_FORMAT_STAND_I2S,
     .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
     //.intr_alloc_flags = 0,
@@ -92,7 +91,7 @@ extern XPT2046_Touchscreen ts;
 
 i2s_config_t mic_i2sconfig = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
-    .sample_rate = devices_devices_sample_rate,
+    .sample_rate = 16000, // this refuses to accep any values lower than 16000
     .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
     .channel_format = I2S_CHANNEL_FMT_ONLY_RIGHT,
     //.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
@@ -419,63 +418,47 @@ void PlayRecording() // play the sample on the speaker
   Serial.print("PlayRecording: -- START --");
 
 #ifdef SPEAKER
-  bool split_into_chunks = false;
-  // size_t bytes_to_write = sizeof(locally_saved_recording);
   size_t bytes_to_write = audio_buffer_size * bytes_per_sample;
-  int loops = sizeof(locally_saved_recording) / audio_buffer_size;
   size_t bytes_written;
 
-  if (split_into_chunks)
+  bytes_to_write = sizeof(locally_saved_recording);
+
+  esp_err_t err = i2s_write(SPEAKER_I2S_PORT, locally_saved_recording, bytes_to_write, &bytes_written, portMAX_DELAY);
+  if (err != ESP_OK)
   {
-    for (int l = 0; l <= loops - 1; l++)
-    {
-      esp_err_t err = i2s_write(SPEAKER_I2S_PORT, &locally_saved_recording[l * audio_buffer_size], bytes_to_write, &bytes_written, portMAX_DELAY);
-      // Serial.print("loop: " + String(l) + ", PlayRecording() just wrote: " + String(bytes_written) + " bytes \n");
-      if (err != ESP_OK)
-      {
-        Serial.print("An error occured while trying to send audio to speaker: " + err);
-      }
-
-      // wait the amount of time that this amount of samples should take to play?
-      // delay(audio_buffer_size / 16);
-    }
+    Serial.print("An error occured while trying to send audio to speaker: " + err);
   }
-  else
-  {
-    // play the whole dang file
-    bytes_to_write = sizeof(locally_saved_recording);
-
-    esp_err_t err = i2s_write(SPEAKER_I2S_PORT, locally_saved_recording, bytes_to_write, &bytes_written, portMAX_DELAY);
-    if (err != ESP_OK)
-    {
-      Serial.print("An error occured while trying to send audio to speaker: " + err);
-    }
-  }
-
 #endif
+
   Serial.print("PlayRecording: -- FINISHED --");
   return;
 }
 
 size_t recording_index = 0;
+size_t transmitting_index = 0;
 
 bool feedback = false;
 int16_t GetAudioSamples(int16_t *buffer, size_t samples_to_get, bool give_level = false)
 {
+  // this must return 1024 samples, other audio buffer sizes don't work with this device
   int16_t input_gain = 40;
   int16_t temp_buffer[samples_to_get];
   size_t bytesRead;
   i2s_read(MIC_I2S_PORT, temp_buffer, samples_to_get * bytes_per_sample, &bytesRead, portMAX_DELAY);
 
   int16_t samples_average_value = 0;
-  for (int i = 0; i < samples_to_get; i++)
+  for (int i = 0; i < samples_to_get; i += 2)
   {
     temp_buffer[i] *= input_gain;
     samples_average_value += abs(temp_buffer[i] >> 14);
+    *(buffer + i / 2) = *(temp_buffer + i);
   }
   samples_average_value /= samples_to_get;
 
-  std::memcpy(buffer, temp_buffer, bytesRead); // only 'paste' in the number of bytes that were populated with samples in the buffer. temp_buffer now contains the entire buffer, populated or not, which means there will be a lot of zeroes in there!
+  // std::memcpy(buffer, temp_buffer, bytesRead); // only 'paste' in the number of bytes that were populated with samples in the buffer. temp_buffer now contains the entire buffer, populated or not, which means there will be a lot of zeroes in there!
+
+  // we just just read, scaled and writen to our local file 1024 samples
+  // the codec2_encode function expects an array of 320 samples,
 
   if (false)
   {
@@ -594,13 +577,7 @@ void loop()
   }
 #endif
 
-  // float mic_in = Get_Mic_Level();
-  // oled_message = mic_in;
   display.clearDisplay();
-
-  // int32_t level_display = GetAudioSamples(&locally_saved_recording[recording_index], 40, false);
-  // oled_message = level_display;
-  // display.fillCircle(SCREEN_WIDTH * 0.5, SCREEN_HEIGHT * 0.5, ((level_display - 20000) * 0.03f), SSD1306_WHITE);
 
   if (digitalRead(BOOT_BTN) == LOW) // PRG button pressed down
   {
@@ -637,7 +614,25 @@ void loop()
     if (true)
     {
       int16_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
-      recording_index += audio_buffer_size;
+      recording_index += audio_buffer_size / 2; // we are halving this because we only actually save half of them, the microphone samples at twice the rate we want (minimum device rate)
+
+      if ((recording_index - transmitting_index) >= 320)
+      {
+        // scrape the next 320 samples from the ring buffer to encode and send
+        int16_t samples_to_encode[320];
+        for (int i = 0; i < 320; i++)
+        {
+          samples_to_encode[i] = locally_saved_recording[transmitting_index + i];
+        }
+
+        // encode samples_to_encode[]
+
+        // store this encoded 320samples -> 8bytes of compressed audio, into another buffer, we will sent it over lora once we collect 40 total bytes
+
+        // then incremement the index to chase the end of the saved samples
+        transmitting_index += 320;
+      }
+
       if (recording_index >= (audio_buffer_size * recording_length)) // wrap around the array
       {
         recording_index -= (audio_buffer_size * recording_length);
