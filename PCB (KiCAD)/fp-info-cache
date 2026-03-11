@@ -1,4 +1,4 @@
-26874719994882703
+26876493116932750
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -105916,6 +105916,13 @@ igbt diode module
 0
 25
 25
+USB4105-GF-A (1)
+BAT_628
+
+
+0
+3
+3
 USB4105-GF-A (1)
 Lil_Pad
 Through hole straight pin header, 1x01, 2.54mm pitch, single row

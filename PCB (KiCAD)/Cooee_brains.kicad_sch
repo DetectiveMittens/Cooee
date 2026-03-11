@@ -4675,6 +4675,335 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Downloaded:628"
+			(pin_names
+				(offset 1.016)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "BT"
+				(at -3.81 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Value" "628"
+				(at -3.81 -5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left bottom)
+				)
+			)
+			(property "Footprint" "USB4105-GF-A (1):BAT_628"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "DigiKey_Part_Number" "36-628-ND"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "SnapEDA_Link" "https://www.snapeda.com/parts/628/Keystone/view-part/?ref=snap"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "MAXIMUM_PACKAGE_HEIGHT" "14.1mm"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "Package" "None"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "Check_prices" "https://www.snapeda.com/parts/628/Keystone/view-part/?ref=eda"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "STANDARD" "Manufacturer Recommendations"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "PARTREV" "A"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "MF" "Keystone"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "MP" "628"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "Description_1" "Battery Contact, Negative Spring, THM, 1 Cell, 2/3A, AA | Keystone Electronics 628"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "MANUFACTURER" "Keystone"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(property "SNAPEDA_PN" "628"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify bottom)
+					(hide yes)
+				)
+			)
+			(symbol "628_0_0"
+				(polyline
+					(pts
+						(xy -3.81 1.905) (xy -2.54 1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -3.175 2.54) (xy -3.175 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 2.54) (xy -1.27 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 0) (xy -2.54 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -1.27 0) (xy -1.27 -2.54)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 1.27) (xy 1.27 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy 1.27 -1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 1.27 0) (xy 2.54 0)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 5.08)
+					(name "~"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "N1"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 5.08)
+					(hide yes)
+					(name "~"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "N2"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 7.62 0 180)
+					(length 5.08)
+					(hide yes)
+					(name "~"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "N3"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Downloaded:8205A-VB"
 			(pin_names
 				(offset 1.016)
@@ -9165,18 +9494,6 @@
 		(uuid 03bb8930-c9dd-4b8e-a526-f7e7c7a7e8c0)
 	)
 	(rectangle
-		(start 99.568 137.16)
-		(end 117.348 142.24)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 04ce8864-9972-4677-b322-63df26cb1f01)
-	)
-	(rectangle
 		(start 113.284 -64.77)
 		(end 289.306 -5.08)
 		(stroke
@@ -9201,18 +9518,6 @@
 			(type none)
 		)
 		(uuid 1b31043a-ddcc-4d91-9606-b92a2daf0000)
-	)
-	(rectangle
-		(start 100.838 101.854)
-		(end 118.364 111.76)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 259b3185-c78e-4b1a-935c-b2ebd2b051fb)
 	)
 	(rectangle
 		(start 15.24 68.326)
@@ -9288,18 +9593,6 @@
 		(uuid 4ba0b2b4-01aa-496b-a970-a087f130030f)
 	)
 	(rectangle
-		(start 91.186 111.76)
-		(end 113.792 129.54)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 5207fa8b-c9d8-411b-8d12-d95d227261fa)
-	)
-	(rectangle
 		(start -41.91 105.41)
 		(end -6.858 127.508)
 		(stroke
@@ -9336,18 +9629,6 @@
 		(uuid 8e8a0653-9204-4705-b9d5-87ee44f0085d)
 	)
 	(rectangle
-		(start 138.43 139.7)
-		(end 165.608 142.24)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid 995a8a75-4602-40c7-b60e-bedc980813a5)
-	)
-	(rectangle
 		(start 87.757 13.97)
 		(end 134.874 61.722)
 		(stroke
@@ -9382,18 +9663,6 @@
 			(type none)
 		)
 		(uuid ab57c782-ce81-4900-bc42-0cec16b1e580)
-	)
-	(rectangle
-		(start 138.43 121.92)
-		(end 161.798 132.334)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid ad79786e-401c-4187-af3e-64d130b11ba4)
 	)
 	(rectangle
 		(start 115.57 -54.61)
@@ -9473,30 +9742,6 @@
 		)
 		(uuid f4b567a2-3b1c-41fc-8069-9a4be54be937)
 	)
-	(rectangle
-		(start 96.012 129.54)
-		(end 113.792 136.906)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid f50b649b-85c9-46cb-9659-abf6e9ac2300)
-	)
-	(rectangle
-		(start 138.43 101.6)
-		(end 158.496 111.506)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(fill
-			(type none)
-		)
-		(uuid fcb81e75-7f2d-4188-b7b4-9f6a2e9af6c4)
-	)
 	(text "SIGNAL"
 		(exclude_from_sim no)
 		(at 194.31 22.098 0)
@@ -9566,16 +9811,6 @@
 		)
 		(uuid "0ee317f2-f784-46e0-a3ee-d43f7db24cf2")
 	)
-	(text "Screen"
-		(exclude_from_sim no)
-		(at 93.726 120.142 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "18f6ca38-a165-42b2-941c-ae6d4a114502")
-	)
 	(text "Min 1.6V max 3.6V"
 		(exclude_from_sim no)
 		(at 181.356 -40.132 0)
@@ -9630,16 +9865,6 @@
 			)
 		)
 		(uuid "2730cb2b-a7c2-4bed-8235-864ad214a0d3")
-	)
-	(text "Speaker\n"
-		(exclude_from_sim no)
-		(at 97.536 133.604 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "297ca2b2-2d60-44ac-872e-8672b0209f54")
 	)
 	(text "M210Z"
 		(exclude_from_sim no)
@@ -9816,26 +10041,6 @@
 		)
 		(uuid "72fdd4bc-16b5-4633-9d8e-0abf0f7c011f")
 	)
-	(text "MIC\n"
-		(exclude_from_sim no)
-		(at 157.734 106.426 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "7d5a5046-2ed1-4d1b-94c5-1f9b327e22e0")
-	)
-	(text "Touch"
-		(exclude_from_sim no)
-		(at 101.346 139.7 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "81e7b462-fe66-4990-b45f-3541b835ed21")
-	)
 	(text "SD_Card"
 		(exclude_from_sim no)
 		(at -35.814 76.454 0)
@@ -9869,16 +10074,6 @@
 			)
 		)
 		(uuid "9bcf1f1c-493d-4327-83f3-e7b253d93bdd")
-	)
-	(text "GPS"
-		(exclude_from_sim no)
-		(at 160.782 127 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "9c18dcdf-5b5d-4afd-a623-de0a1de3c30f")
 	)
 	(text "CONNECTORS"
 		(exclude_from_sim no)
@@ -9975,26 +10170,6 @@
 			)
 		)
 		(uuid "c7efc0cb-d59a-4b41-8a0e-d5b06635a255")
-	)
-	(text "QWERTY"
-		(exclude_from_sim no)
-		(at 102.108 106.68 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "c953c081-ae2b-4970-be79-8a4c073ed018")
-	)
-	(text "LoRa Radio"
-		(exclude_from_sim no)
-		(at 159.258 141.478 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "d64dda3f-acff-4229-823f-6fa706e6da1b")
 	)
 	(text "Mic"
 		(exclude_from_sim no)
@@ -10886,6 +11061,16 @@
 	)
 	(wire
 		(pts
+			(xy 295.91 217.17) (xy 280.67 217.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a83529cd-766d-43d8-b0e3-5a8330b82412")
+	)
+	(wire
+		(pts
 			(xy 43.18 -22.86) (xy 43.18 -21.59)
 		)
 		(stroke
@@ -11086,6 +11271,16 @@
 	)
 	(wire
 		(pts
+			(xy 274.32 238.76) (xy 274.32 243.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cec09061-7e43-4b5a-aeb2-136ba016bca4")
+	)
+	(wire
+		(pts
 			(xy 156.21 100.33) (xy 156.21 105.41)
 		)
 		(stroke
@@ -11093,6 +11288,16 @@
 			(type default)
 		)
 		(uuid "d1b7d2e9-e1ed-4bc1-8f8f-37b80efa47ac")
+	)
+	(wire
+		(pts
+			(xy 280.67 218.44) (xy 271.78 218.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d4844b8e-c334-4185-b7f1-166f511e7226")
 	)
 	(wire
 		(pts
@@ -11213,6 +11418,16 @@
 			(type default)
 		)
 		(uuid "f0c2a8d9-2afe-4528-bc02-78b059353c70")
+	)
+	(wire
+		(pts
+			(xy 280.67 217.17) (xy 280.67 218.44)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f1513e29-4081-48b6-bd95-5254a66e9353")
 	)
 	(wire
 		(pts
@@ -25845,22 +26060,22 @@
 	)
 	(global_label "KEEB_SCL"
 		(shape input)
-		(at 157.48 92.71 0)
+		(at 113.03 105.41 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify right)
 		)
 		(uuid "b4ebb245-ace6-42d8-b80a-e20e401f1cee")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.2629 92.71 0)
+			(at 103.2471 105.41 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 				(hide yes)
 			)
 		)
@@ -25933,7 +26148,7 @@
 	)
 	(global_label "SPKR_LRCK"
 		(shape input)
-		(at 109.22 146.05 180)
+		(at 113.03 130.81 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -25943,7 +26158,7 @@
 		)
 		(uuid "bc4720d6-3c2c-4526-a6ad-b255c4a10abc")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 98.3824 146.05 0)
+			(at 102.1924 130.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -25997,28 +26212,6 @@
 			)
 		)
 	)
-	(global_label "T_IRQ"
-		(shape input)
-		(at 113.03 123.19 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "c2d33982-2a52-4e3e-a95d-54b30c2597f6")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 105.9246 123.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "Batt+"
 		(shape input)
 		(at 52.07 -50.8 0)
@@ -26054,6 +26247,28 @@
 		(uuid "c3b8818c-c310-4a6c-bf6e-16e4beb25b9c")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 101.6142 113.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "KEEB_INT"
+		(shape input)
+		(at 113.03 128.27 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "c41aac11-2044-45c7-a27e-4fd428d649be")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 103.2967 128.27 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -26175,7 +26390,7 @@
 	)
 	(global_label "LoRa_Select"
 		(shape input)
-		(at 156.21 147.32 0)
+		(at 143.51 115.57 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -26185,7 +26400,7 @@
 		)
 		(uuid "caa40746-614c-4ead-9c44-9bd1c3fef1c9")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 167.6965 147.32 0)
+			(at 154.9965 115.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -26415,9 +26630,31 @@
 			)
 		)
 	)
+	(global_label "KEEB_D"
+		(shape input)
+		(at 113.03 125.73 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "dec11f23-5c05-4e80-88ef-0512e519a4fa")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 104.6652 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+				(hide yes)
+			)
+		)
+	)
 	(global_label "SPKR_EN"
 		(shape input)
-		(at 283.21 227.33 0)
+		(at 261.62 205.74 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -26427,7 +26664,7 @@
 		)
 		(uuid "e0ab7c16-11dc-4937-8e91-da3f8f44e6f4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 292.4954 227.33 0)
+			(at 270.9054 205.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -26450,28 +26687,6 @@
 		(uuid "e0d1ee17-19bf-4ad0-b4c4-126d79d88ae3")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 204.6709 -34.29 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "T_CS"
-		(shape input)
-		(at 113.03 120.65 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "e0ff6b68-46f9-4665-be14-dc8a7d419d01")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 106.7522 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -27934,6 +28149,198 @@
 			(project "Cooee_brains"
 				(path "/38f2fbf3-bfbd-4714-9298-32093c806bb8"
 					(reference "D5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Downloaded:628")
+		(at 82.55 -22.86 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "18dd3b0d-7b6c-4f2d-8776-31096540f032")
+		(property "Reference" "BT1"
+			(at 81.915 -29.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "628"
+			(at 81.915 -26.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "USB4105-GF-A (1):BAT_628"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "DigiKey_Part_Number" "36-628-ND"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "SnapEDA_Link" "https://www.snapeda.com/parts/628/Keystone/view-part/?ref=snap"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "MAXIMUM_PACKAGE_HEIGHT" "14.1mm"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "Package" "None"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "Check_prices" "https://www.snapeda.com/parts/628/Keystone/view-part/?ref=eda"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "STANDARD" "Manufacturer Recommendations"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "PARTREV" "A"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "MF" "Keystone"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "MP" "628"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "Description_1" "Battery Contact, Negative Spring, THM, 1 Cell, 2/3A, AA | Keystone Electronics 628"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "MANUFACTURER" "Keystone"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(property "SNAPEDA_PN" "628"
+			(at 82.55 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify bottom)
+				(hide yes)
+			)
+		)
+		(pin "N2"
+			(uuid "a1ddd678-3da8-4ae2-b13f-2bbc6ab478cd")
+		)
+		(pin "N1"
+			(uuid "253000d4-b2eb-4d9b-b64f-7e69e1502656")
+		)
+		(pin "N3"
+			(uuid "5a0aa157-6b2d-45ff-89df-90c1dcc3e6c2")
+		)
+		(instances
+			(project ""
+				(path "/38f2fbf3-bfbd-4714-9298-32093c806bb8"
+					(reference "BT1")
 					(unit 1)
 				)
 			)
@@ -29880,7 +30287,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 274.32 241.3 180)
+		(at 274.32 246.38 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -29888,7 +30295,7 @@
 		(dnp no)
 		(uuid "46b93be9-52bf-4453-9952-8dcdb87f7e9b")
 		(property "Reference" "H1"
-			(at 271.78 243.8401 0)
+			(at 271.78 248.9201 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -29897,7 +30304,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 295.91 242.57 0)
+			(at 295.91 247.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -29906,7 +30313,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965_Pad_TopBottom"
-			(at 274.32 241.3 0)
+			(at 274.32 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -29915,7 +30322,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 274.32 241.3 0)
+			(at 274.32 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -29924,7 +30331,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 274.32 241.3 0)
+			(at 274.32 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -30410,10 +30817,10 @@
 		(lib_id "Mechanical:MountingHole_Pad_MP")
 		(at 219.71 228.6 180)
 		(unit 1)
-		(exclude_from_sim no)
+		(exclude_from_sim yes)
 		(in_bom no)
-		(on_board yes)
-		(dnp no)
+		(on_board no)
+		(dnp yes)
 		(uuid "594e1b5b-0125-40fd-a701-a6846d2e198f")
 		(property "Reference" "H4"
 			(at 217.17 231.1401 0)
@@ -33581,7 +33988,7 @@
 	)
 	(symbol
 		(lib_id "Mechanical:MountingHole_Pad_MP")
-		(at 271.78 220.98 180)
+		(at 295.91 219.71 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom no)
@@ -33589,7 +33996,7 @@
 		(dnp no)
 		(uuid "ae8bb688-980a-4d67-96f4-81665ff2885b")
 		(property "Reference" "H2"
-			(at 269.24 223.5201 0)
+			(at 293.37 222.2501 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33598,7 +34005,7 @@
 			)
 		)
 		(property "Value" "MountingHole_Pad_MP"
-			(at 293.37 222.25 0)
+			(at 317.5 220.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33607,7 +34014,7 @@
 			)
 		)
 		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3_DIN965_Pad_TopBottom"
-			(at 271.78 220.98 0)
+			(at 295.91 219.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33616,7 +34023,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 271.78 220.98 0)
+			(at 295.91 219.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -33625,7 +34032,7 @@
 			)
 		)
 		(property "Description" "Mounting Hole with connection as pad named MP"
-			(at 271.78 220.98 0)
+			(at 295.91 219.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -36321,6 +36728,71 @@
 			(project "Cooee_brains"
 				(path "/38f2fbf3-bfbd-4714-9298-32093c806bb8"
 					(reference "#PWR037")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 90.17 -22.86 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ea67a483-6af7-43ab-b801-641ddb88f5a4")
+		(property "Reference" "#PWR042"
+			(at 90.17 -16.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 90.424 -19.558 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 90.17 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 90.17 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 90.17 -22.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b2a39687-97d1-4c78-bc06-5808415b708b")
+		)
+		(instances
+			(project "Cooee_brains"
+				(path "/38f2fbf3-bfbd-4714-9298-32093c806bb8"
+					(reference "#PWR042")
 					(unit 1)
 				)
 			)

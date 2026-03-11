@@ -1,7 +1,6 @@
 /* TODO
-0. switch to 320, 8KHz samples
-1. figure out how to encode our samples with codec2
-2. implement 'feedback' sending the samples read each frame directly back out the speaker
+0. move the microphone sampling code into the encoding task, make the encoding task into it's own loop
+1. make a decoding task so that messages can be decoded and played without causing a stack overflow
 */
 
 #include <Arduino.h>
@@ -14,22 +13,21 @@
 #include "FS.h"
 #include <LittleFS.h>
 #include <driver/i2s.h>
-// #include "codec2.h"
 
 /* - -----     ENABLE/DISABLE FEATURES ----- - */
 // #define LCD_4ELECRO
 // #define TOUCH_4ELECRO
 #define MICROPHONE
 #define SPEAKER
-#define GPS
-#define BATTERY
-#define HT3_OLED
-// #define LORA_RADIO
+// #define GPS
+// #define BATTERY
+// #define HT3_OLED
+#define LORA_RADIO
 
 const int bytes_per_sample = 2;
-const int recording_length = 32;
+const int recording_length = 16;
 const int audio_buffer_size = 1024;
-static int16_t locally_saved_recording[audio_buffer_size * recording_length]; // enough for ~2 seconds of voice samples at 8KHz samplerate
+static int16_t locally_saved_recording[audio_buffer_size * recording_length] = {0}; // enough for ~2 seconds of voice samples at 8KHz samplerate
 
 #ifdef SPEAKER //=====SPEAKER :  AUDIO OUT
 
@@ -86,9 +84,7 @@ extern XPT2046_Touchscreen ts;
 #define MIC_I2S_BCLK 5
 #define MIC_I2S_LRC 3
 #define MIC_CS 2
-#include <codec2.h>            //In the codec2 folder in the library folder
-#include <ButterworthFilter.h> //In the codec2 folder in the library folder
-#include <FastAudioFIFO.h>     //In the codec2 folder in the library folder
+#include <codec2.h> //In the codec2 folder in the library folder
 
 i2s_config_t mic_i2sconfig = {
     .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
@@ -150,12 +146,19 @@ Adafruit_SSD1306 display(
 
 //-- AUDIO ENCODING --
 struct CODEC2 *codec2_state;
-#define ENCODE_FRAME_BYTES 8                                // the 40byte frame/packet is built up gradually of 8byte chunks
-#define ENCODE_CODEC2_PACKET_BYTES 32                       // wait for 5 x 8byte frames before sending over LoRa
-static uint8_t tx_encode_frame[ENCODE_CODEC2_PACKET_BYTES]; // 40 byte packet of compressed audio, this is the final array to actually be sent over radio
-static uint8_t tx_encode_frame_index = 0;                   // this tracks which of the 5 8byte chunks within the overall 40byte packet we are up to
-static int16_t samples_to_encode[320];                      // this just contains a copy of the last 320 samples of audio which were copied to the locally_saved_recording buffer array, since the encoding function expects 320 samples only!
+#define ENCODE_FRAME_BYTES 8                                      // the 40byte frame/packet is built up gradually of 8byte chunks
+#define ENCODE_CODEC2_PACKET_BYTES 32                             // wait for 5 x 8byte frames before sending over LoRa
+static uint8_t tx_encode_frame[ENCODE_CODEC2_PACKET_BYTES] = {0}; // 40 byte packet of compressed audio, this is the final array to actually be sent over radio
+static uint8_t little_8byte_buffer[8] = {0};
+static uint8_t tx_encode_frame_index = 0;    // this tracks which of the 5 8byte chunks within the overall 40byte packet we are up to
+static int16_t samples_to_encode[320] = {0}; // this just contains a copy of the last 320 samples of audio which were copied to the locally_saved_recording buffer array, since the encoding function expects 320 samples only!
 size_t transmitting_index = 0;
+
+TaskHandle_t encode_task_;
+int c2_samples_per_frame_;
+int c2_bytes_per_frame_;
+int16_t *c2_samples_;
+uint8_t *c2_bits_;
 
 // #define configMINIMAL_STACK_SIZE 2048 // Default is usually 256-512
 
@@ -179,11 +182,40 @@ struct LoRaPacket
   uint8_t payload[192]; // adjustable to stay under 200 bytes total
 };
 
-// an audio filter
-ButterworthFilter hp_filter(240, 8000, ButterworthFilter::ButterworthFilter::Highpass, 1);
-
 SX1262 radio = new Module(LoRa_nss, LoRa_dio1, LoRa_nrst, LoRa_busy);
 String oled_message = "OLED Test!";
+
+void encode_task(void *param)
+{
+  Serial.println("encode_task() called!");
+  // Initialize the Codec2 object
+  codec2_state = codec2_create(CODEC2_MODE_1600);
+  if (codec2_state == NULL)
+  {
+    Serial.println("ERROR: Failed to create codec2 state!");
+    return;
+  }
+
+  // c2_samples_per_frame_ = codec2_samples_per_frame(codec2_state); //320
+  // c2_bytes_per_frame_ = codec2_bytes_per_frame(codec2_state); //8
+
+  // Serial.println("c2_samples_per_frame_ returned: " + (String)c2_samples_per_frame_);
+  // Serial.println("c2_bytes_per_frame_ returned: " + (String)c2_bytes_per_frame_);
+
+  // c2_samples_ = (int16_t *)malloc(sizeof(int16_t) * c2_samples_per_frame_);
+  // c2_bits_ = (uint8_t *)malloc(sizeof(uint8_t) * c2_bytes_per_frame_);
+
+  // codec2_encode(
+  codec2_encode(codec2_state, tx_encode_frame, samples_to_encode);
+  vTaskDelay(1);
+
+  Serial.println("Finished encoding!!!");
+
+  // cleanup the task before it ends or it will crash the chip
+  codec2_destroy(codec2_state);
+  vTaskDelete(NULL);
+  return;
+}
 
 // function to generate a random string
 String random_string(size_t length)
@@ -227,6 +259,7 @@ void SaveSamples()
 
 void SendLoRaMessage(String msg)
 {
+  Serial.println("SendLoRaMessage() called in text mode");
   int result = radio.transmit(msg);
 
   if (result == RADIOLIB_ERR_NONE)
@@ -239,7 +272,7 @@ void SendLoRaMessage(String msg)
   }
   else if (result == RADIOLIB_ERR_TX_TIMEOUT)
   { // timeout occured while transmitting packet
-    Serial.println(F("timeout!"));
+    Serial.println(F("timeout occured while transmitting packet!"));
   }
   else
   { // some other error occurred
@@ -250,6 +283,8 @@ void SendLoRaMessage(String msg)
 
 void SendLoRaMessage(uint8_t *data, size_t len)
 {
+  Serial.println("SendLoRaMessage() called in data mode");
+
   int result = radio.transmit(data, len);
 
   if (result == RADIOLIB_ERR_NONE)
@@ -262,7 +297,7 @@ void SendLoRaMessage(uint8_t *data, size_t len)
   }
   else if (result == RADIOLIB_ERR_TX_TIMEOUT)
   { // timeout occured while transmitting packet
-    Serial.println(F("timeout!"));
+    Serial.println(F("LoRa Radio timed sending a message"));
   }
   else
   { // some other error occurred
@@ -330,7 +365,7 @@ void RecieveLoRaMessage()
   else if (state == RADIOLIB_ERR_RX_TIMEOUT)
   {
     // timeout occurred while waiting for a packet
-    Serial.println(F("timeout!"));
+    Serial.println(F("LoRa Rx timeout..."));
   }
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
@@ -345,16 +380,34 @@ void RecieveLoRaMessage()
   }
 }
 
+/*
 QueueHandle_t encodeQueue;
 void compress_audio_Task(void *arg)
 {
-  int16_t *buf;
+  int16_t *sample_buffer;
 
   while (true)
   {
-    if (xQueueReceive(encodeQueue, &buf, portMAX_DELAY))
+    if (xQueueReceive(encodeQueue, sample_buffer, portMAX_DELAY))
     {
-      codec2_encode(codec2_state, tx_encode_frame, buf);
+      // Check if buffer is valid
+      if (sample_buffer == NULL)
+      {
+        Serial.println("Received NULL buffer!");
+        continue;
+      }
+
+      // Check if codec2 state is valid
+      if (codec2_state == NULL)
+      {
+        Serial.println("Codec2 state is NULL!");
+        continue;
+      }
+
+      Serial.println("compress_audio_Task() will now call codec2_encode()");
+
+      // codec2_state = codec2_create(CODEC2_MODE_1600); // the idiot AI says this needs to be called before each use of the codec2 methods
+      codec2_encode(codec2_state, tx_encode_frame, sample_buffer);
 
       // send tx_encode_frame via radio etc
       Serial.println("320 samples converted to 8 bytes of compressed audio in frame buffer");
@@ -373,6 +426,7 @@ void compress_audio_Task(void *arg)
     }
   }
 }
+ */
 
 void setup()
 {
@@ -389,26 +443,6 @@ void setup()
   }
   Serial.println("LittleFS mounted");
   */
-
-  // Initialize the Codec2 object
-  codec2_state = codec2_create(CODEC2_MODE_1600);
-
-  encodeQueue = xQueueCreate(4, sizeof(int16_t *));
-  if (encodeQueue == NULL)
-  {
-    Serial.println("Queue creation failed!!!!");
-  }
-
-  xTaskCreatePinnedToCore(
-      compress_audio_Task,
-      "codecTask",
-      16384,
-      NULL,
-      1,
-      NULL,
-      1);
-
-  // codec2_set_lpc_post_filter(codec2_state, 1, 0, 0.8, 0.2); //commenting this out because I have no idea what it is
 
 #ifdef SPEAKER
   i2s_driver_install(SPEAKER_I2S_PORT, &speaker_i2sconfig, 0, NULL);
@@ -444,10 +478,10 @@ void setup()
   pinMode(LED_W, OUTPUT);
   pinMode(LED_Orange, OUTPUT);
   pinMode(BOOT_BTN, INPUT_PULLUP);
-  pinMode(VEXT_PIN, OUTPUT);
-  digitalWrite(VEXT_PIN, LOW); // LOW = ON
 
 #ifdef HT3_OLED
+  pinMode(VEXT_PIN, OUTPUT);
+  digitalWrite(VEXT_PIN, LOW); // LOW = ON
   // Initialize HT3 OLED
   Wire.begin(oled_sda, oled_scl);
   if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR))
@@ -490,7 +524,6 @@ void setup()
 #endif
 
   Serial.println("setup complete!");
-  display.println("Setup complete!");
 }
 
 void PlayRecording() // play the sample on the speaker
@@ -515,7 +548,6 @@ void PlayRecording() // play the sample on the speaker
 }
 
 size_t recording_index = 0;
-
 bool feedback = false;
 int16_t GetAudioSamples(int16_t *buffer, size_t samples_to_get, bool give_level = false)
 {
@@ -563,12 +595,14 @@ void ChangeChannel(int chan)
   radio.setFrequency(915.2 + (chan * 0.2));
 }
 
+/*
 void sendRandomStringLoRaMsg()
 {
   String new_message = random_string(6);
   SendLoRaMessage("Message-" + new_message);
   PutOnScreen("Sent: " + new_message, false);
 }
+*/
 
 #ifdef LCD_4ELECRO
 void drawRandomLine()
@@ -616,9 +650,9 @@ int GetTransmitDelta()
 // ======================-- MAIN LOOP --==========================
 bool blink = false;
 bool transmitting = false;
-bool draw_waveform = false;
 void loop()
 {
+
 #ifdef LCD_4ELECRO
   tft.fillScreen(TFT_BLACK);
   tft.setCursor(0, 0);
@@ -636,118 +670,90 @@ void loop()
   }
 #endif
 
+#ifdef HT3_OLED
   display.clearDisplay();
+#endif
 
-  if (digitalRead(BOOT_BTN) == LOW) // PRG button pressed down
+  if (digitalRead(BOOT_BTN) == LOW) // PRG button pressed down - we speak
   {
     if (!transmitting)
     {
       transmitting = true;
       recording_index = 0;
+
+      // try only doing this once when we first press the button
+      xTaskCreate(&encode_task, "audio_task", 32000, NULL, 5, &encode_task_);
     }
   }
-  else // PRG button up
+  else // PRG button is up - we listen
   {
-
-    /* Play back the entire recorded thing
-    if (transmitting) // we WERE just transmitting, so play the samples back once
-    {
-      transmitting = false;
-      // SaveSamples();
-
-      oled_message = "Playing >>>";
-      display.display();
-
-      PlayRecording();
-
-      oled_message = "Finished playing [_]";
-    }
-    */
-#ifdef LORA_RADIO
+    transmitting = false;
     RecieveLoRaMessage();
-#endif
   }
 
   if (transmitting) // record the MIC_IN adc (should be talking)
   {
-    oled_message = "REC... " + (String)recording_index;
-    display.drawLine(0, OLED_HEIGHT / 2, (recording_index / audio_buffer_size * recording_length) / OLED_WIDTH, OLED_HEIGHT / 2, SSD1306_WHITE);
-    display.display();
+    /*
 
-    if (true)
-    {
-      int16_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
-      recording_index += audio_buffer_size / 2;                      // 512, we are halving this because we only actually save half of them, the microphone samples at twice the rate we want (minimum device rate)
-      if (recording_index >= (audio_buffer_size * recording_length)) // wrap around the array
-      {
-        recording_index -= (audio_buffer_size * recording_length);
-      }
+                 int16_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
+                 recording_index += audio_buffer_size / 2;                      // 512, we are halving this because we only actually save half of them, the microphone samples at twice the rate we want (minimum device rate)
+                 if (recording_index >= (audio_buffer_size * recording_length)) // wrap around the array
+                 {
+                   recording_index -= (audio_buffer_size * recording_length);
+                 }
 
-      Serial.println("recording_index moved to: " + String(recording_index));
+                 Serial.println("recording_index moved to: " + String(recording_index));
+                 Serial.println("recording_index @: " + String(recording_index) + ", transmitting_index @: " + String(transmitting_index));
+                 Serial.println("Resulting in a transmit_dleta of " + String(GetTransmitDelta()));
 
-      Serial.println("recording_index @: " + String(recording_index) + ", transmitting_index @: " + String(transmitting_index));
-      Serial.println("Resulting in a transmit_dleta of " + String(GetTransmitDelta()));
 
-      while (GetTransmitDelta() >= 320)
-      {
-        Serial.println("transmit_delta above 320, moving samples to encoding buffer");
-        // scrape the next 320 samples from the ring buffer to encode and send
 
-        for (int i = 0; i < 320; i++)
-        {
-          if (transmitting_index + i < (audio_buffer_size * recording_length))
-          {
-            samples_to_encode[i] = locally_saved_recording[transmitting_index + i]; // copy 1 to 1 if the index stays within the bounds of locally_saved_recording[]
-          }
-          else
-          { // otherwise we need to modify i to stay within bounds
-            samples_to_encode[i] = locally_saved_recording[transmitting_index + i - (audio_buffer_size * recording_length)];
-          }
-        }
-        transmitting_index += 320;
-        if (transmitting_index >= (audio_buffer_size * recording_length)) // wrap around the array
-        {
-          transmitting_index -= (audio_buffer_size * recording_length);
-        }
+                     while (GetTransmitDelta() >= 320)
+                     {
+                       Serial.println("transmit_delta above 320, moving samples to encoding buffer");
+                       // scrape the next 320 samples from the ring buffer to encode and send
 
-        Serial.println("transmitting_index moved to: " + String(transmitting_index));
-        Serial.println("tx_encode_frame_index = " + String(tx_encode_frame_index));
-        // Serial.println("tx_encode_frame Buffer size: " + String(sizeof(tx_encode_frame)));
-        // Serial.println("samples_to_encode size: " + String(sizeof(samples_to_encode)));
-        //  Serial.println("tx_encode_frame starts in memory at" + (String)tx_encode_frame);
-        //  Serial.println("address with the tx_encode_frame_index offset is " + String(tx_encode_frame + tx_encode_frame_index));
-        //   Encode samples_to_encode[]
-        // codec2_state = codec2_create(CODEC2_MODE_1600); // the idiot AI says this needs to be called before each use of the codec2 methods
+                       for (int i = 0; i < 320; i++)
+                       {
+                         if (transmitting_index + i < (audio_buffer_size * recording_length))
+                         {
+                           samples_to_encode[i] = locally_saved_recording[transmitting_index + i]; // copy 1 to 1 if the index stays within the bounds of locally_saved_recording[]
+                         }
+                         else
+                         { // otherwise we need to modify i to stay within bounds
+                           samples_to_encode[i] = locally_saved_recording[transmitting_index + i - (audio_buffer_size * recording_length)];
+                         }
+                       }
+                       transmitting_index += 320;
+                       if (transmitting_index >= (audio_buffer_size * recording_length)) // wrap around the array
+                       {
+                         transmitting_index -= (audio_buffer_size * recording_length);
+                       }
 
-        Serial.println(uxTaskGetStackHighWaterMark(NULL));
+                       Serial.println("transmitting_index moved to: " + String(transmitting_index));
+                       Serial.println("tx_encode_frame_index = " + String(tx_encode_frame_index));
+                       Serial.println(uxTaskGetStackHighWaterMark(NULL));
 
-        // codec2_encode(codec2_state, tx_encode_frame, samples_to_encode);
-        // vTaskDelay(1);
-        if (encodeQueue == NULL)
-        {
-          Serial.println("ERROR: Can't start the process/Task for encoding since the Queue handle is NULL");
-        }
-        else
-        {
-          Serial.println("Attempting to START audio encoding/compression");
-          xQueueSend(encodeQueue, &samples_to_encode, 0);
-          vTaskDelay(1);
-        }
-      }
+                       xTaskCreate(&encode_task, "audio_task", 32000, NULL, 5, &encode_task_);
 
-      display.setCursor(0, 20);
-      display.print(ave_value);
-      display.fillCircle(64, 32, ave_value * 0.001, SSD1306_WHITE);
-    }
-    else
-    {
-      Serial.println("Size of locally_saved_recording in bytes is : " + String(sizeof(locally_saved_recording)));
-      Serial.println("position in recording : " + String(sizeof(locally_saved_recording)));
-      Serial.println("Recording this last chunk would overflow the range of the saved sample array, skipping");
-      recording_index = 0;
-    }
+
+
+                      // send tx_encode_frame via radio etc
+                      Serial.println("320 samples converted to 8 bytes of compressed audio in frame buffer");
+                      // Store this encoded 320samples -> 8bytes of compressed audio, into the 'tx_encode_frame'  buffer, we will sent it over lora once we collect 40 total bytes
+                      tx_encode_frame_index += ENCODE_FRAME_BYTES;             // incrememnt by 8bytes
+                      if (tx_encode_frame_index >= ENCODE_CODEC2_PACKET_BYTES) // packet is full (32 bytes)
+                      {
+                        // Serial.println("32 byte frame buffer is full now");
+                        tx_encode_frame_index = 0;
+                        SendLoRaMessage(tx_encode_frame, sizeof(tx_encode_frame));
+                        Serial.println("Sent over LoRa: 32 bytes of comressed audio");
+                      }
+
+               }*/
   }
 
+#ifdef HT3_OLED
   display.setCursor(0, 0);
   display.print(oled_message);
   if (blink)
@@ -755,6 +761,7 @@ void loop()
     display.fillCircle(124, 60, 2, SSD1306_WHITE);
   }
   display.display();
+#endif
 
   blink = !blink;
 }

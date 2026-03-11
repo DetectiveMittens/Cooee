@@ -10,6 +10,7 @@
             "includePath": [
                 "d:/Cooee/Code (VSC)/HTV3_Testing/include",
                 "d:/Cooee/Code (VSC)/HTV3_Testing/src",
+                "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/esp32_codec2/src",
                 "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/ESP32-audioI2S/src",
                 "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
@@ -21,7 +22,6 @@
                 "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/LittleFS/src",
                 "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/SPIFFS/src",
                 "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
-                "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/ESP32 Codec2/src",
                 "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/Adafruit SSD1306",
                 "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/Adafruit GFX Library",
                 "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/Adafruit BusIO",
@@ -258,6 +258,7 @@
                 "path": [
                     "d:/Cooee/Code (VSC)/HTV3_Testing/include",
                     "d:/Cooee/Code (VSC)/HTV3_Testing/src",
+                    "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/esp32_codec2/src",
                     "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/ESP32-audioI2S/src",
                     "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
@@ -269,7 +270,6 @@
                     "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/LittleFS/src",
                     "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/SPIFFS/src",
                     "C:/Users/Leigh/.platformio/packages/framework-arduinoespressif32/libraries/FS/src",
-                    "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/ESP32 Codec2/src",
                     "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/Adafruit SSD1306",
                     "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/Adafruit GFX Library",
                     "d:/Cooee/Code (VSC)/HTV3_Testing/.pio/libdeps/esp32dev/Adafruit BusIO",
