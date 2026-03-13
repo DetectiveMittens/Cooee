@@ -500,7 +500,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "./",
-      "plot": "Gerbers/",
+      "plot": "Gerbers_Keyboard/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "Cooee_keyboard_68mm.step",
