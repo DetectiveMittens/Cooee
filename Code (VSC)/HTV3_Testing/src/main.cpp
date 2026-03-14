@@ -1,6 +1,11 @@
 /* TODO
 0. move the microphone sampling code into the encoding task, make the encoding task into it's own loop
 1. make a decoding task so that messages can be decoded and played without causing a stack overflow
+
+count the total number of full (32byte) packets we SHOULD have sent
+count the number of times the programm reaches SendLoRaMessage Success
+count the total number of recieved 32byte packets on the Rx end!
+
 */
 
 #include <Arduino.h>
@@ -25,9 +30,12 @@
 #define LORA_RADIO
 
 const int bytes_per_sample = 2;
-const int recording_length = 16;
+const int recording_length = 64;
 const int audio_buffer_size = 1024;
 static int16_t locally_saved_recording[audio_buffer_size * recording_length] = {0}; // enough for ~2 seconds of voice samples at 8KHz samplerate
+static int16_t decoded_samples[audio_buffer_size * recording_length] = {0};         // enough for ~2 seconds of voice samples at 8KHz samplerate
+int decoded_playable_index = 0;
+int decoded_played_index = 0;
 
 #ifdef SPEAKER //=====SPEAKER :  AUDIO OUT
 
@@ -185,38 +193,6 @@ struct LoRaPacket
 SX1262 radio = new Module(LoRa_nss, LoRa_dio1, LoRa_nrst, LoRa_busy);
 String oled_message = "OLED Test!";
 
-void encode_task(void *param)
-{
-  Serial.println("encode_task() called!");
-  // Initialize the Codec2 object
-  codec2_state = codec2_create(CODEC2_MODE_1600);
-  if (codec2_state == NULL)
-  {
-    Serial.println("ERROR: Failed to create codec2 state!");
-    return;
-  }
-
-  // c2_samples_per_frame_ = codec2_samples_per_frame(codec2_state); //320
-  // c2_bytes_per_frame_ = codec2_bytes_per_frame(codec2_state); //8
-
-  // Serial.println("c2_samples_per_frame_ returned: " + (String)c2_samples_per_frame_);
-  // Serial.println("c2_bytes_per_frame_ returned: " + (String)c2_bytes_per_frame_);
-
-  // c2_samples_ = (int16_t *)malloc(sizeof(int16_t) * c2_samples_per_frame_);
-  // c2_bits_ = (uint8_t *)malloc(sizeof(uint8_t) * c2_bytes_per_frame_);
-
-  // codec2_encode(
-  codec2_encode(codec2_state, tx_encode_frame, samples_to_encode);
-  vTaskDelay(1);
-
-  Serial.println("Finished encoding!!!");
-
-  // cleanup the task before it ends or it will crash the chip
-  codec2_destroy(codec2_state);
-  vTaskDelete(NULL);
-  return;
-}
-
 // function to generate a random string
 String random_string(size_t length)
 {
@@ -230,6 +206,29 @@ String random_string(size_t length)
   }
 
   return s;
+}
+
+size_t recording_index = 0;
+bool feedback = false;
+int16_t GetAudioSamples(int16_t *buffer, size_t samples_to_get, bool give_level = false)
+{
+  // this must return 1024 samples, other audio buffer sizes don't work with this device
+  int16_t input_gain = 40;
+  int16_t temp_buffer[samples_to_get];
+  size_t bytesRead;
+  i2s_read(MIC_I2S_PORT, temp_buffer, samples_to_get * bytes_per_sample, &bytesRead, portMAX_DELAY);
+
+  int16_t samples_average_value = 0;
+  for (int i = 0; i < (bytesRead / 2); i += 2)
+  {
+    temp_buffer[i] *= input_gain;
+    samples_average_value += abs(temp_buffer[i] >> 14);
+
+    *(buffer + i / 2) = *(temp_buffer + i);
+  }
+
+  samples_average_value /= (bytesRead / 2);
+  return samples_average_value;
 }
 
 void SaveSamples()
@@ -297,7 +296,7 @@ void SendLoRaMessage(uint8_t *data, size_t len)
   }
   else if (result == RADIOLIB_ERR_TX_TIMEOUT)
   { // timeout occured while transmitting packet
-    Serial.println(F("LoRa Radio timed sending a message"));
+    Serial.println(F("Radio timed OUT while sending"));
   }
   else
   { // some other error occurred
@@ -318,6 +317,12 @@ void PutOnScreen(String msg, bool clear)
   }
 }
 
+static byte recievedCompressedBytes[320] = {0};
+int ready_for_decoding_index = 0;
+int decoded_index = 0;
+static int16_t recievedDecompressedSamples[1024 * 5] = {0};
+int decompressedPlayed_index = 0;
+
 void RecieveLoRaMessage()
 {
   // PutOnScreen("Awaiting message...", false);
@@ -336,10 +341,20 @@ void RecieveLoRaMessage()
 
   if (state == RADIOLIB_ERR_NONE) // everything recieved fine
   {
-    int16_t decompressed_audio[320];
-    codec2_decode(codec2_state, decompressed_audio, byteArr);
-    size_t bytes_written;
-    esp_err_t err = i2s_write(SPEAKER_I2S_PORT, decompressed_audio, 320 * 2, &bytes_written, portMAX_DELAY);
+    Serial.println("A message has been heard!");
+
+    // move these successfully heard compressed audio bytes into our static ring buffer for the other compression loop to handle in time
+    for (int i = 0; i < 32; i++)
+    {
+      recievedCompressedBytes[ready_for_decoding_index + i] = byteArr[i];
+    }
+    ready_for_decoding_index += 32;
+    if (ready_for_decoding_index > 320) // wrap this buffer
+    {
+      ready_for_decoding_index -= 320;
+    }
+
+    Serial.println("Recieved bytes added to buffer, ready for decoding then playing. ready_for_decoding_index = " + (String)ready_for_decoding_index);
 
     /*
     Serial.println(F("success!"));
@@ -365,7 +380,7 @@ void RecieveLoRaMessage()
   else if (state == RADIOLIB_ERR_RX_TIMEOUT)
   {
     // timeout occurred while waiting for a packet
-    Serial.println(F("LoRa Rx timeout..."));
+    Serial.println(F("Listening..."));
   }
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
@@ -380,36 +395,142 @@ void RecieveLoRaMessage()
   }
 }
 
-/*
-QueueHandle_t encodeQueue;
-void compress_audio_Task(void *arg)
+int GetTransmitDelta()
 {
-  int16_t *sample_buffer;
+  int transmit_delta = 0;
+  if (recording_index < transmitting_index)
+  {
+    transmit_delta = (recording_index + (audio_buffer_size * recording_length)) - transmitting_index;
+  }
+  else
+  {
+    transmit_delta = (recording_index - transmitting_index);
+  }
+  return transmit_delta;
+}
+
+int GetPlayedDelta()
+{
+  int played_delta = 0;
+  if (decoded_playable_index < decoded_played_index)
+  {
+    played_delta = decoded_playable_index + (audio_buffer_size * recording_length) - decoded_played_index;
+  }
+  else
+  {
+    played_delta = decoded_playable_index - decoded_played_index;
+  }
+
+  return played_delta;
+}
+
+int GetRecieveDelta()
+{
+  int rx_delta = 0;
+  if (ready_for_decoding_index < decoded_index)
+  {
+    rx_delta = ready_for_decoding_index + 320 - decoded_index;
+  }
+  else
+  {
+    rx_delta = (ready_for_decoding_index - decoded_index);
+  }
+  return rx_delta;
+}
+
+void StopSpeaker()
+{
+  // Stop playback:
+  i2s_zero_dma_buffer(SPEAKER_I2S_PORT); // Clear any remaining data
+  i2s_stop(SPEAKER_I2S_PORT);
+}
+
+void StartSpeaker()
+{
+  // Restart
+  i2s_start(SPEAKER_I2S_PORT);
+}
+
+void encode_task(void *param)
+{
+  Serial.println("encode_task() called!");
+  // Initialize the Codec2 object
+  codec2_state = codec2_create(CODEC2_MODE_1600);
+  if (codec2_state == NULL)
+  {
+    Serial.println("ERROR: Failed to create codec2 state!");
+    return;
+  }
 
   while (true)
-  {
-    if (xQueueReceive(encodeQueue, sample_buffer, portMAX_DELAY))
+  { // loop
+
+    // check if we need to decode (any undecoded audio recieved)
+    if (GetRecieveDelta() > 8)
     {
-      // Check if buffer is valid
-      if (sample_buffer == NULL)
+      Serial.println("More than 8 undecoded bytes in the buffer for decoding");
+      byte byteArr[8] = {0};
+      for (int i = 0; i < 8; i++) // move 8 bytes into this little buffer to get decoded
       {
-        Serial.println("Received NULL buffer!");
-        continue;
+        // ensure that this doesn't go out of bounds
+        if (decoded_index + i < 320)
+        {
+          byteArr[i] = recievedCompressedBytes[decoded_index + i];
+        }
+        else
+        {
+          byteArr[i] = recievedCompressedBytes[decoded_index + i - 320];
+        }
+      }
+      decoded_index += 8;
+      if (decoded_index > 320)
+      {
+        decoded_index -= 320;
       }
 
-      // Check if codec2 state is valid
-      if (codec2_state == NULL)
+      Serial.println("Now decoding the 8 byte frame");
+      // int16_t decompressed_audio[320];
+      codec2_decode(codec2_state, &decoded_samples[decoded_playable_index], byteArr);
+      size_t bytes_written;
+      decoded_playable_index += 320;
+      int decoded_samples_buffer_size = (audio_buffer_size * recording_length);
+      if (decoded_playable_index > decoded_samples_buffer_size)
       {
-        Serial.println("Codec2 state is NULL!");
-        continue;
+        decoded_playable_index -= decoded_samples_buffer_size;
       }
 
-      Serial.println("compress_audio_Task() will now call codec2_encode()");
+      Serial.println("Decoded frame into 320 samples, added to buffer, playable_index is now:" + (String)decoded_playable_index);
+      // we can only play whole buffers to the speaker of 1024 samples! so we must store out decodes, little by little
+    }
 
-      // codec2_state = codec2_create(CODEC2_MODE_1600); // the idiot AI says this needs to be called before each use of the codec2 methods
-      codec2_encode(codec2_state, tx_encode_frame, sample_buffer);
+    // check if we need to do an ecode (more than 320 new samples)
+    if (GetTransmitDelta() >= 320)
+    {
+      Serial.println("transmit_delta above 320, moving samples to encoding buffer. Delta=" + (String)GetTransmitDelta());
+      // scrape the next 320 samples from the ring buffer to encode and send
 
-      // send tx_encode_frame via radio etc
+      for (int i = 0; i < 320; i++)
+      {
+        if (transmitting_index + i < (audio_buffer_size * recording_length))
+        {
+          samples_to_encode[i] = locally_saved_recording[transmitting_index + i]; // copy 1 to 1 if the index stays within the bounds of locally_saved_recording[]
+        }
+        else
+        { // otherwise we need to modify i to stay within bounds
+          samples_to_encode[i] = locally_saved_recording[transmitting_index + i - (audio_buffer_size * recording_length)];
+        }
+      }
+      transmitting_index += 320;
+      if (transmitting_index >= (audio_buffer_size * recording_length)) // wrap around the array
+      {
+        transmitting_index -= (audio_buffer_size * recording_length);
+      }
+
+      // codec2_encode
+      codec2_encode(codec2_state, tx_encode_frame + tx_encode_frame_index, samples_to_encode);
+      vTaskDelay(1);
+
+      // Send tx_encode_frame via radio etc
       Serial.println("320 samples converted to 8 bytes of compressed audio in frame buffer");
       // Store this encoded 320samples -> 8bytes of compressed audio, into the 'tx_encode_frame'  buffer, we will sent it over lora once we collect 40 total bytes
       tx_encode_frame_index += ENCODE_FRAME_BYTES;             // incrememnt by 8bytes
@@ -420,13 +541,20 @@ void compress_audio_Task(void *arg)
         SendLoRaMessage(tx_encode_frame, sizeof(tx_encode_frame));
         Serial.println("Sent over LoRa: 32 bytes of comressed audio");
       }
-
-      // then incremement the index to chase the end of the saved samples
-      transmitting_index += 320;
+    }
+    else
+    {
+      // Serial.println("Nothin new to encode...");
+      delay(20);
     }
   }
+
+  // this should never get reached, since the loop has no end
+  //  cleanup the task before it ends or it will crash the chip
+  codec2_destroy(codec2_state);
+  vTaskDelete(NULL);
+  return;
 }
- */
 
 void setup()
 {
@@ -523,6 +651,10 @@ void setup()
   }
 #endif
 
+  Serial.println("Starting encoding loop task...");
+  // start the parallel loop task which handles encoding etc.
+  xTaskCreate(&encode_task, "audio_task", 32000, NULL, 5, &encode_task_);
+
   Serial.println("setup complete!");
 }
 
@@ -536,6 +668,7 @@ void PlayRecording() // play the sample on the speaker
 
   bytes_to_write = sizeof(locally_saved_recording);
 
+  // we must ensure that we never write a chunk of simples LESS than the buffer size, or it will be 'incomplete' and cause the device to loop playback!@!!
   esp_err_t err = i2s_write(SPEAKER_I2S_PORT, locally_saved_recording, bytes_to_write, &bytes_written, portMAX_DELAY);
   if (err != ESP_OK)
   {
@@ -545,38 +678,6 @@ void PlayRecording() // play the sample on the speaker
 
   Serial.print("PlayRecording: -- FINISHED --");
   return;
-}
-
-size_t recording_index = 0;
-bool feedback = false;
-int16_t GetAudioSamples(int16_t *buffer, size_t samples_to_get, bool give_level = false)
-{
-  // this must return 1024 samples, other audio buffer sizes don't work with this device
-  int16_t input_gain = 40;
-  int16_t temp_buffer[samples_to_get];
-  size_t bytesRead;
-  i2s_read(MIC_I2S_PORT, temp_buffer, samples_to_get * bytes_per_sample, &bytesRead, portMAX_DELAY);
-
-  int16_t samples_average_value = 0;
-  for (int i = 0; i < samples_to_get; i += 2)
-  {
-    temp_buffer[i] *= input_gain;
-    samples_average_value += abs(temp_buffer[i] >> 14);
-    *(buffer + i / 2) = *(temp_buffer + i);
-  }
-  samples_average_value /= samples_to_get;
-
-  if (false)
-  {
-    int16_t decoded_samples[samples_to_get];
-    codec2_decode(codec2_state, decoded_samples, tx_encode_frame);
-
-    // Play Feedback
-    size_t bytes_written;
-    esp_err_t err = i2s_write(SPEAKER_I2S_PORT, decoded_samples, bytesRead, &bytes_written, portMAX_DELAY);
-  }
-
-  return samples_average_value;
 }
 
 void ChangeChannel(int chan)
@@ -632,21 +733,6 @@ TS_Point calibratedPoint(TS_Point p)
 }
 #endif
 
-int GetTransmitDelta()
-{
-
-  int transmit_delta = 0;
-  if (recording_index < transmitting_index)
-  {
-    transmit_delta = (recording_index + (audio_buffer_size * recording_length)) - transmitting_index;
-  }
-  else
-  {
-    transmit_delta = (recording_index - transmitting_index);
-  }
-  return transmit_delta;
-}
-
 // ======================-- MAIN LOOP --==========================
 bool blink = false;
 bool transmitting = false;
@@ -680,77 +766,66 @@ void loop()
     {
       transmitting = true;
       recording_index = 0;
-
-      // try only doing this once when we first press the button
-      xTaskCreate(&encode_task, "audio_task", 32000, NULL, 5, &encode_task_);
     }
   }
   else // PRG button is up - we listen
   {
-    transmitting = false;
-    RecieveLoRaMessage();
+    if (transmitting)
+    {
+      delay(200);
+      transmitting = false;
+    }
   }
 
   if (transmitting) // record the MIC_IN adc (should be talking)
   {
-    /*
+    // before we add 2048 bytes of data to locally_saved_recording we need to ensure that it can fit
+    if ((recording_index + audio_buffer_size) < (audio_buffer_size * recording_length))
+    {
+      // enough room in array for new samples, starting at recording_index
+    }
+    else
+    {
+      // not enough room!
+      recording_index = 0;
 
-                 int16_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
-                 recording_index += audio_buffer_size / 2;                      // 512, we are halving this because we only actually save half of them, the microphone samples at twice the rate we want (minimum device rate)
-                 if (recording_index >= (audio_buffer_size * recording_length)) // wrap around the array
-                 {
-                   recording_index -= (audio_buffer_size * recording_length);
-                 }
+      // FIXME: this isn't ideal, it's better than writing outside the bounds, but the code that reads the locally_saved_recording[] array will still read the little left over part of the array that we're skipping!
+    }
 
-                 Serial.println("recording_index moved to: " + String(recording_index));
-                 Serial.println("recording_index @: " + String(recording_index) + ", transmitting_index @: " + String(transmitting_index));
-                 Serial.println("Resulting in a transmit_dleta of " + String(GetTransmitDelta()));
+    int16_t ave_value = GetAudioSamples(&locally_saved_recording[recording_index], audio_buffer_size, true);
+    recording_index += audio_buffer_size / 2;                      // 512, we are halving this because we only actually save half of them, the microphone samples at twice the rate we want (minimum device rate)
+    if (recording_index >= (audio_buffer_size * recording_length)) // wrap around the array
+    {
+      recording_index -= (audio_buffer_size * recording_length);
+    }
 
+    Serial.println("recording_index @: " + String(recording_index) + ", transmitting_index @: " + String(transmitting_index));
+  }
+  else
+  {
 
+    RecieveLoRaMessage();
 
-                     while (GetTransmitDelta() >= 320)
-                     {
-                       Serial.println("transmit_delta above 320, moving samples to encoding buffer");
-                       // scrape the next 320 samples from the ring buffer to encode and send
+    Serial.println("Rx'ed " + (String)ready_for_decoding_index);
 
-                       for (int i = 0; i < 320; i++)
-                       {
-                         if (transmitting_index + i < (audio_buffer_size * recording_length))
-                         {
-                           samples_to_encode[i] = locally_saved_recording[transmitting_index + i]; // copy 1 to 1 if the index stays within the bounds of locally_saved_recording[]
-                         }
-                         else
-                         { // otherwise we need to modify i to stay within bounds
-                           samples_to_encode[i] = locally_saved_recording[transmitting_index + i - (audio_buffer_size * recording_length)];
-                         }
-                       }
-                       transmitting_index += 320;
-                       if (transmitting_index >= (audio_buffer_size * recording_length)) // wrap around the array
-                       {
-                         transmitting_index -= (audio_buffer_size * recording_length);
-                       }
+    if (GetPlayedDelta() > audio_buffer_size) // we have recieved and decoded enough samples to play to the speaker device
+    {
+      Serial.println("More than 1024 samples in the ready to play buffer!");
+      size_t bytes_written = 0;
+      esp_err_t err = i2s_write(SPEAKER_I2S_PORT, &decoded_samples[decoded_played_index], audio_buffer_size * 2, &bytes_written, portMAX_DELAY);
+      if (err != ESP_OK)
+      {
+        Serial.print("An error occured while trying to send audio to speaker: " + err);
+      }
 
-                       Serial.println("transmitting_index moved to: " + String(transmitting_index));
-                       Serial.println("tx_encode_frame_index = " + String(tx_encode_frame_index));
-                       Serial.println(uxTaskGetStackHighWaterMark(NULL));
+      decoded_played_index += audio_buffer_size;
+      if (decoded_played_index > (audio_buffer_size * recording_length))
+      {
+        decoded_played_index -= (audio_buffer_size * recording_length);
+      }
 
-                       xTaskCreate(&encode_task, "audio_task", 32000, NULL, 5, &encode_task_);
-
-
-
-                      // send tx_encode_frame via radio etc
-                      Serial.println("320 samples converted to 8 bytes of compressed audio in frame buffer");
-                      // Store this encoded 320samples -> 8bytes of compressed audio, into the 'tx_encode_frame'  buffer, we will sent it over lora once we collect 40 total bytes
-                      tx_encode_frame_index += ENCODE_FRAME_BYTES;             // incrememnt by 8bytes
-                      if (tx_encode_frame_index >= ENCODE_CODEC2_PACKET_BYTES) // packet is full (32 bytes)
-                      {
-                        // Serial.println("32 byte frame buffer is full now");
-                        tx_encode_frame_index = 0;
-                        SendLoRaMessage(tx_encode_frame, sizeof(tx_encode_frame));
-                        Serial.println("Sent over LoRa: 32 bytes of comressed audio");
-                      }
-
-               }*/
+      Serial.println("Done writing 1024 samples to the speaker. Played: " + (String)decoded_played_index);
+    }
   }
 
 #ifdef HT3_OLED

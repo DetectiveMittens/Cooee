@@ -5908,16 +5908,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "MF" "TDK InvenSense"
+			(property "Description" "Multi-Mode Microphone with I2S Digital Output"
 				(at 0 0 0)
 				(effects
 					(font
@@ -5927,7 +5918,7 @@
 					(hide yes)
 				)
 			)
-			(property "DESCRIPTION" "Multi-Mode Microphone with I2S Digital Output"
+			(property "MF" "TDK InvenSense"
 				(at 0 0 0)
 				(effects
 					(font
@@ -9877,6 +9868,18 @@
 			)
 		)
 		(uuid "488d0076-8a7a-4f8e-8387-e86c6a49967b")
+	)
+	(text "Need to figure out a thermistor and voltage divider resistor values\nR1 and R2 which will result in the desired voltage appearing at the temp \npin"
+		(exclude_from_sim no)
+		(at 9.144 -27.178 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+				(color 255 0 0 1)
+			)
+			(justify left)
+		)
+		(uuid "49b06a78-f6eb-4779-af20-667a5f625bb5")
 	)
 	(text "ESP32-S3\n"
 		(exclude_from_sim no)
