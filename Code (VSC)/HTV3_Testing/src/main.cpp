@@ -1,12 +1,19 @@
 /* TODO
-0. move the microphone sampling code into the encoding task, make the encoding task into it's own loop
-1. make a decoding task so that messages can be decoded and played without causing a stack overflow
-
 count the total number of full (32byte) packets we SHOULD have sent
 count the number of times the programm reaches SendLoRaMessage Success
 count the total number of recieved 32byte packets on the Rx end!
-
 */
+
+// 320 samples = 0.04s of audio at 8000Hz
+// 32 byte packet = 0.16s of audio at 8000Hz
+// 80 bytes = 3200 samples = 0.4s of audio!
+
+// DEBUG, remove later
+int packets_filled = 0;
+int packets_sent = 0;
+int packets_recieved = 0;
+int packets_played = 0;
+bool prints = true;
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -26,7 +33,7 @@ count the total number of recieved 32byte packets on the Rx end!
 #define SPEAKER
 // #define GPS
 // #define BATTERY
-// #define HT3_OLED
+#define HT3_OLED
 #define LORA_RADIO
 
 const int bytes_per_sample = 2;
@@ -154,12 +161,13 @@ Adafruit_SSD1306 display(
 
 //-- AUDIO ENCODING --
 struct CODEC2 *codec2_state;
-#define ENCODE_FRAME_BYTES 8                                      // the 40byte frame/packet is built up gradually of 8byte chunks
-#define ENCODE_CODEC2_PACKET_BYTES 32                             // wait for 5 x 8byte frames before sending over LoRa
+#define ENCODE_FRAME_BYTES 8          // the 40byte frame/packet is built up gradually of 8byte chunks
+#define ENCODE_CODEC2_PACKET_BYTES 96 // wait for 5 x 8byte frames before sending over LoRa
+static uint8_t bytes_buffer_size = 480;
 static uint8_t tx_encode_frame[ENCODE_CODEC2_PACKET_BYTES] = {0}; // 40 byte packet of compressed audio, this is the final array to actually be sent over radio
 static uint8_t little_8byte_buffer[8] = {0};
-static uint8_t tx_encode_frame_index = 0;    // this tracks which of the 5 8byte chunks within the overall 40byte packet we are up to
-static int16_t samples_to_encode[320] = {0}; // this just contains a copy of the last 320 samples of audio which were copied to the locally_saved_recording buffer array, since the encoding function expects 320 samples only!
+static uint8_t tx_encode_frame_index = 0; // this tracks which of the 5 8byte chunks within the overall 40byte packet we are up to
+// static int16_t samples_to_encode[320] = {0}; // this just contains a copy of the last 320 samples of audio which were copied to the locally_saved_recording buffer array, since the encoding function expects 320 samples only!
 size_t transmitting_index = 0;
 
 TaskHandle_t encode_task_;
@@ -234,7 +242,11 @@ int16_t GetAudioSamples(int16_t *buffer, size_t samples_to_get, bool give_level 
 void SaveSamples()
 {
 
-  Serial.println("Here's all the samples: ");
+  if (prints)
+  {
+    Serial.println("Here's all the samples: ");
+  }
+
   for (int16_t sample : locally_saved_recording)
   {
     Serial.print(String(sample) + ",");
@@ -258,12 +270,18 @@ void SaveSamples()
 
 void SendLoRaMessage(String msg)
 {
-  Serial.println("SendLoRaMessage() called in text mode");
+  if (prints)
+  {
+    Serial.println("SendLoRaMessage() called in text mode");
+  }
   int result = radio.transmit(msg);
 
   if (result == RADIOLIB_ERR_NONE)
   { // the packet was successfully transmitted
-    Serial.println(F("Success!"));
+    if (prints)
+    {
+      Serial.println(F("Success!"));
+    }
   }
   else if (result == RADIOLIB_ERR_PACKET_TOO_LONG)
   { // the supplied packet was longer than 256 bytes
@@ -282,13 +300,20 @@ void SendLoRaMessage(String msg)
 
 void SendLoRaMessage(uint8_t *data, size_t len)
 {
-  Serial.println("SendLoRaMessage() called in data mode");
+  if (prints)
+  {
+    Serial.println("SendLoRaMessage() called in data mode");
+  }
 
   int result = radio.transmit(data, len);
 
   if (result == RADIOLIB_ERR_NONE)
   { // the packet was successfully transmitted
-    Serial.println(F("Success!"));
+    if (prints)
+    {
+      Serial.println(F("Success!"));
+    }
+    packets_sent++;
   }
   else if (result == RADIOLIB_ERR_PACKET_TOO_LONG)
   { // the supplied packet was longer than 256 bytes
@@ -317,7 +342,7 @@ void PutOnScreen(String msg, bool clear)
   }
 }
 
-static byte recievedCompressedBytes[320] = {0};
+static byte recievedCompressedBytes[480] = {0};
 int ready_for_decoding_index = 0;
 int decoded_index = 0;
 static int16_t recievedDecompressedSamples[1024 * 5] = {0};
@@ -336,26 +361,32 @@ void RecieveLoRaMessage()
 
   // you can also receive data as byte array
 
-  byte byteArr[32];
-  int state = radio.receive(byteArr, 32);
+  byte byteArr[ENCODE_CODEC2_PACKET_BYTES];
+  int state = radio.receive(byteArr, ENCODE_CODEC2_PACKET_BYTES);
 
   if (state == RADIOLIB_ERR_NONE) // everything recieved fine
   {
-    Serial.println("A message has been heard!");
+    if (prints)
+    {
+      Serial.println("A message has been heard!");
+    }
+    packets_recieved++;
 
     // move these successfully heard compressed audio bytes into our static ring buffer for the other compression loop to handle in time
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < ENCODE_CODEC2_PACKET_BYTES; i++)
     {
       recievedCompressedBytes[ready_for_decoding_index + i] = byteArr[i];
     }
-    ready_for_decoding_index += 32;
+    ready_for_decoding_index += ENCODE_CODEC2_PACKET_BYTES;
     if (ready_for_decoding_index > 320) // wrap this buffer
     {
       ready_for_decoding_index -= 320;
     }
 
-    Serial.println("Recieved bytes added to buffer, ready for decoding then playing. ready_for_decoding_index = " + (String)ready_for_decoding_index);
-
+    if (prints)
+    {
+      Serial.println("Recieved bytes added to buffer, ready for decoding then playing. ready_for_decoding_index = " + (String)ready_for_decoding_index);
+    }
     /*
     Serial.println(F("success!"));
 
@@ -380,7 +411,10 @@ void RecieveLoRaMessage()
   else if (state == RADIOLIB_ERR_RX_TIMEOUT)
   {
     // timeout occurred while waiting for a packet
-    Serial.println(F("Listening..."));
+    if (prints)
+    {
+      Serial.println(F("Listening..."));
+    }
   }
   else if (state == RADIOLIB_ERR_CRC_MISMATCH)
   {
@@ -453,7 +487,8 @@ void StartSpeaker()
 
 void encode_task(void *param)
 {
-  Serial.println("encode_task() called!");
+  Serial.println("encode_task() started!");
+
   // Initialize the Codec2 object
   codec2_state = codec2_create(CODEC2_MODE_1600);
   if (codec2_state == NULL)
@@ -468,7 +503,10 @@ void encode_task(void *param)
     // check if we need to decode (any undecoded audio recieved)
     if (GetRecieveDelta() > 8)
     {
-      Serial.println("More than 8 undecoded bytes in the buffer for decoding");
+      if (prints)
+      {
+        Serial.println("More than 8 undecoded bytes in the buffer for decoding");
+      }
       byte byteArr[8] = {0};
       for (int i = 0; i < 8; i++) // move 8 bytes into this little buffer to get decoded
       {
@@ -488,7 +526,10 @@ void encode_task(void *param)
         decoded_index -= 320;
       }
 
-      Serial.println("Now decoding the 8 byte frame");
+      if (prints)
+      {
+        Serial.println("Now decoding the 8 byte frame");
+      }
       // int16_t decompressed_audio[320];
       codec2_decode(codec2_state, &decoded_samples[decoded_playable_index], byteArr);
       size_t bytes_written;
@@ -498,17 +539,23 @@ void encode_task(void *param)
       {
         decoded_playable_index -= decoded_samples_buffer_size;
       }
-
-      Serial.println("Decoded frame into 320 samples, added to buffer, playable_index is now:" + (String)decoded_playable_index);
+      if (prints)
+      {
+        Serial.println("Decoded frame into 320 samples, added to buffer, playable_index is now:" + (String)decoded_playable_index);
+      }
       // we can only play whole buffers to the speaker of 1024 samples! so we must store out decodes, little by little
     }
 
     // check if we need to do an ecode (more than 320 new samples)
     if (GetTransmitDelta() >= 320)
     {
-      Serial.println("transmit_delta above 320, moving samples to encoding buffer. Delta=" + (String)GetTransmitDelta());
+      if (prints)
+      {
+        Serial.println("transmit_delta above 320, moving samples to encoding buffer. Delta=" + (String)GetTransmitDelta());
+      }
       // scrape the next 320 samples from the ring buffer to encode and send
 
+      int16_t samples_to_encode[320] = {0};
       for (int i = 0; i < 320; i++)
       {
         if (transmitting_index + i < (audio_buffer_size * recording_length))
@@ -531,15 +578,22 @@ void encode_task(void *param)
       vTaskDelay(1);
 
       // Send tx_encode_frame via radio etc
-      Serial.println("320 samples converted to 8 bytes of compressed audio in frame buffer");
+      if (prints)
+      {
+        Serial.println("320 samples converted to 8 bytes of compressed audio in frame buffer");
+      }
       // Store this encoded 320samples -> 8bytes of compressed audio, into the 'tx_encode_frame'  buffer, we will sent it over lora once we collect 40 total bytes
       tx_encode_frame_index += ENCODE_FRAME_BYTES;             // incrememnt by 8bytes
       if (tx_encode_frame_index >= ENCODE_CODEC2_PACKET_BYTES) // packet is full (32 bytes)
       {
+        packets_filled++;
         // Serial.println("32 byte frame buffer is full now");
         tx_encode_frame_index = 0;
+        if (prints)
+        {
+          Serial.println("Sending: 32 bytes of comressed audio over LoRa");
+        }
         SendLoRaMessage(tx_encode_frame, sizeof(tx_encode_frame));
-        Serial.println("Sent over LoRa: 32 bytes of comressed audio");
       }
     }
     else
@@ -633,12 +687,20 @@ void setup()
   int radio_state = radio.begin(
       915.0, // frequency MHz
       125.0, // bandwidth kHz
-      7,     // spreading factor
+      9,     // spreading factor
       5,     // coding rate (4/5)
       0x34,  // sync word
       22,    // TX power dBm
       8      // preamble length
   );
+
+  // LoRa has maximum payload limits:
+  // SF7: ~250 bytes max
+  // SF8: ~170 bytes max
+  // SF9: ~120 bytes max
+  // SF10: ~80 bytes max
+  // SF11: ~60 bytes max
+  // SF12: ~40 bytes max
 
   delay(100);
   if (radio_state == RADIOLIB_ERR_NONE)
@@ -765,15 +827,14 @@ void loop()
     if (!transmitting)
     {
       transmitting = true;
-      recording_index = 0;
     }
   }
   else // PRG button is up - we listen
   {
     if (transmitting)
     {
-      delay(200);
       transmitting = false;
+      delay(300);
     }
   }
 
@@ -798,15 +859,20 @@ void loop()
     {
       recording_index -= (audio_buffer_size * recording_length);
     }
-
-    Serial.println("recording_index @: " + String(recording_index) + ", transmitting_index @: " + String(transmitting_index));
+    if (prints)
+    {
+      Serial.println("recording_index @: " + String(recording_index) + ", transmitting_index @: " + String(transmitting_index));
+    }
   }
   else
   {
 
     RecieveLoRaMessage();
 
-    Serial.println("Rx'ed " + (String)ready_for_decoding_index);
+    if (prints)
+    {
+      Serial.println("Rx'ed " + (String)ready_for_decoding_index);
+    }
 
     if (GetPlayedDelta() > audio_buffer_size) // we have recieved and decoded enough samples to play to the speaker device
     {
@@ -817,19 +883,28 @@ void loop()
       {
         Serial.print("An error occured while trying to send audio to speaker: " + err);
       }
+      else
+      {
+        packets_played++;
+      }
 
       decoded_played_index += audio_buffer_size;
       if (decoded_played_index > (audio_buffer_size * recording_length))
       {
         decoded_played_index -= (audio_buffer_size * recording_length);
       }
-
-      Serial.println("Done writing 1024 samples to the speaker. Played: " + (String)decoded_played_index);
+      if (prints)
+      {
+        Serial.println("Done writing 1024 samples to the speaker. Played: " + (String)decoded_played_index);
+      }
     }
   }
 
 #ifdef HT3_OLED
   display.setCursor(0, 0);
+  display.setTextSize(2);
+  oled_message = "Filled:" + (String)packets_filled + "\nSent:  " + (String)packets_sent + "\nRx:   " + (String)packets_recieved + "\nPlayed:" + (String)packets_played;
+
   display.print(oled_message);
   if (blink)
   {
